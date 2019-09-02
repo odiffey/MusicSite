@@ -4,14 +4,18 @@ const async = require('async');
 const config = require('config');
 const request = require('request');
 const bcrypt = require('bcrypt');
-
-const db = require('../db');
-const mail = require('../mail');
-const cache = require('../cache');
-const utils = require('../utils');
-const hooks = require('./hooks');
 const sha256 = require('sha256');
-const logger = require('../logger');
+
+const hooks = require('./hooks');
+
+const moduleManager = require("../../index");
+
+const db = moduleManager.modules["db"];
+const mail = moduleManager.modules["mail"];
+const cache = moduleManager.modules["cache"];
+const punishments = moduleManager.modules["punishments"];
+const utils = moduleManager.modules["utils"];
+const logger = moduleManager.modules["logger"];
 
 cache.sub('user.updateUsername', user => {
 	utils.socketsFromUser(user._id, sockets => {
@@ -21,8 +25,15 @@ cache.sub('user.updateUsername', user => {
 	});
 });
 
+cache.sub('user.removeSessions', userId => {
+	utils.socketsFromUserWithoutCache(userId, sockets => {
+		sockets.forEach(socket => {
+			socket.emit('keep.event:user.session.removed');
+		});
+	});
+});
+
 cache.sub('user.linkPassword', userId => {
-	console.log("LINK4", userId);
 	utils.socketsFromUser(userId, sockets => {
 		sockets.forEach(socket => {
 			socket.emit('event:user.linkPassword');
@@ -31,7 +42,6 @@ cache.sub('user.linkPassword', userId => {
 });
 
 cache.sub('user.linkGitHub', userId => {
-	console.log("LINK1", userId);
 	utils.socketsFromUser(userId, sockets => {
 		sockets.forEach(socket => {
 			socket.emit('event:user.linkGitHub');
@@ -40,7 +50,6 @@ cache.sub('user.linkGitHub', userId => {
 });
 
 cache.sub('user.unlinkPassword', userId => {
-	console.log("LINK2", userId);
 	utils.socketsFromUser(userId, sockets => {
 		sockets.forEach(socket => {
 			socket.emit('event:user.unlinkPassword');
@@ -49,10 +58,34 @@ cache.sub('user.unlinkPassword', userId => {
 });
 
 cache.sub('user.unlinkGitHub', userId => {
-	console.log("LINK3", userId);
 	utils.socketsFromUser(userId, sockets => {
 		sockets.forEach(socket => {
 			socket.emit('event:user.unlinkGitHub');
+		});
+	});
+});
+
+cache.sub('user.ban', data => {
+	utils.socketsFromUser(data.userId, sockets => {
+		sockets.forEach(socket => {
+			socket.emit('keep.event:banned', data.punishment);
+			socket.disconnect(true);
+		});
+	});
+});
+
+cache.sub('user.favoritedStation', data => {
+	utils.socketsFromUser(data.userId, sockets => {
+		sockets.forEach(socket => {
+			socket.emit('event:user.favoritedStation', data.stationId);
+		});
+	});
+});
+
+cache.sub('user.unfavoritedStation', data => {
+	utils.socketsFromUser(data.userId, sockets => {
+		sockets.forEach(socket => {
+			socket.emit('event:user.unfavoritedStation', data.stationId);
 		});
 	});
 });
@@ -70,9 +103,9 @@ module.exports = {
 			(next) => {
 				db.models.user.find({}).exec(next);
 			}
-		], (err, users) => {
+		], async (err, users) => {
 			if (err) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("USER_INDEX", `Indexing users failed. "${err}"`);
 				return cb({status: 'failure', message: err});
 			} else {
@@ -133,16 +166,21 @@ module.exports = {
 			},
 
 			(user, next) => {
-				let sessionId = utils.guid();
+				utils.guid().then((sessionId) => {
+					next(null, user, sessionId);
+				});
+			},
+
+			(user, sessionId, next) => {
 				cache.hset('sessions', sessionId, cache.schemas.session(sessionId, user._id), (err) => {
 					if (err) return next(err);
 					next(null, sessionId);
 				});
 			}
 
-		], (err, sessionId) => {
+		], async (err, sessionId) => {
 			if (err && err !== true) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("USER_PASSWORD_LOGIN", `Login failed with password for user "${identifier}". "${err}"`);
 				return cb({status: 'failure', message: err});
 			}
@@ -162,12 +200,17 @@ module.exports = {
 	 * @param {Object} recaptcha - the recaptcha data
 	 * @param {Function} cb - gets called with the result
 	 */
-	register: function(session, username, email, password, recaptcha, cb) {
+	register: async function(session, username, email, password, recaptcha, cb) {
 		email = email.toLowerCase();
-		let verificationToken = utils.generateRandomString(64);
+		let verificationToken = await utils.generateRandomString(64);
 		async.waterfall([
 
 			// verify the request with google recaptcha
+			(next) => {
+				if (!db.passwordValid(password)) return next('Invalid password. Check if it meets all the requirements.');
+				return next();
+			},
+
 			(next) => {
 				request({
 					url: 'https://www.google.com/recaptcha/api/siteverify',
@@ -206,10 +249,16 @@ module.exports = {
 				bcrypt.hash(sha256(password), salt, next)
 			},
 
-			// save the new user to the database
 			(hash, next) => {
+				utils.generateRandomString(12).then((_id) => {
+					next(null, hash, _id);
+				});
+			},
+
+			// save the new user to the database
+			(hash, _id, next) => {
 				db.models.user.create({
-					_id: utils.generateRandomString(12),//TODO Check if exists
+					_id,
 					username,
 					email: {
 						address: email,
@@ -231,9 +280,9 @@ module.exports = {
 				});
 			}
 
-		], (err) => {
+		], async (err) => {
 			if (err && err !== true) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("USER_PASSWORD_REGISTER", `Register failed with password for user "${username}"."${err}"`);
 				cb({status: 'failure', message: err});
 			} else {
@@ -271,18 +320,77 @@ module.exports = {
 			(session, next) => {
 				cache.hdel('sessions', session.sessionId, next);
 			}
-		], (err) => {
+		], async (err) => {
 			if (err && err !== true) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("USER_LOGOUT", `Logout failed. "${err}" `);
-				cb({status: 'failure', message: err});
+				cb({ status: 'failure', message: err });
 			} else {
 				logger.success("USER_LOGOUT", `Logout successful.`);
-				cb({status: 'success', message: 'Successfully logged out.'});
+				cb({ status: 'success', message: 'Successfully logged out.' });
 			}
 		});
 
 	},
+
+	/**
+	 * Removes all sessions for a user
+	 *
+	 * @param {Object} session - the session object automatically added by socket.io
+	 * @param {String} userId - the id of the user we are trying to delete the sessions of
+	 * @param {Function} cb - gets called with the result
+	 * @param {String} loggedInUser - the logged in userId automatically added by hooks
+	 */
+	removeSessions:  hooks.loginRequired((session, userId, cb, loggedInUser) => {
+
+		async.waterfall([
+
+			(next) => {
+				db.models.user.findOne({ _id: loggedInUser }, (err, user) => {
+					if (user.role !== 'admin' && loggedInUser !== userId) return next('Only admins and the owner of the account can remove their sessions.');
+					else return next();
+				});
+			},
+
+			(next) => {
+				cache.hgetall('sessions', next);
+			},
+
+			(sessions, next) => {
+				if (!sessions) return next('There are no sessions for this user to remove.');
+				else {
+					let keys = Object.keys(sessions);
+					next(null, keys, sessions);
+				}
+			},
+
+			(keys, sessions, next) => {
+				cache.pub('user.removeSessions', userId);
+				async.each(keys, (sessionId, callback) => {
+					let session = sessions[sessionId];
+					if (session.userId === userId) {
+						cache.hdel('sessions', sessionId, err => {
+							if (err) return callback(err);
+							else callback(null);
+						});
+					}
+				}, err => {
+					next(err);
+				});
+			}
+
+		], async err => {
+			if (err) {
+				err = await utils.getError(err);
+				logger.error("REMOVE_SESSIONS_FOR_USER", `Couldn't remove all sessions for user "${userId}". "${err}"`);
+				return cb({ status: 'failure', message: err });
+			} else {
+				logger.success("REMOVE_SESSIONS_FOR_USER", `Removed all sessions for user "${userId}".`);
+				return cb({ status: 'success', message: 'Successfully removed all sessions.' });
+			}
+		});
+
+	}),
 
 	/**
 	 * Gets user object from username (only a few properties)
@@ -301,9 +409,9 @@ module.exports = {
 				if (!account) return next('User not found.');
 				next(null, account);
 			}
-		], (err, account) => {
+		], async (err, account) => {
 			if (err && err !== true) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("FIND_BY_USERNAME", `User not found for username "${username}". "${err}"`);
 				cb({status: 'failure', message: err});
 			} else {
@@ -321,6 +429,39 @@ module.exports = {
 						disliked: account.disliked
 					}
 				});
+			}
+		});
+	},
+
+
+	/**
+	 * Gets a username from an userId
+	 *
+	 * @param {Object} session - the session object automatically added by socket.io
+	 * @param {String} userId - the userId of the person we are trying to get the username from
+	 * @param {Function} cb - gets called with the result
+	 */
+	getUsernameFromId: (session, userId, cb) => {
+		db.models.user.findById(userId).then(user => {
+			if (user) {
+				logger.success("GET_USERNAME_FROM_ID", `Found username for userId "${userId}".`);
+				return cb({
+					status: 'success',
+					data: user.username
+				});
+			} else {
+				logger.error("GET_USERNAME_FROM_ID", `Getting the username from userId "${userId}" failed. User not found.`);
+				cb({
+					status: 'failure',
+					message: "Couldn't find the user."
+				});
+			}
+			
+		}).catch(async err => {
+			if (err && err !== true) {
+				err = await utils.getError(err);
+				logger.error("GET_USERNAME_FROM_ID", `Getting the username from userId "${userId}" failed. "${err}"`);
+				cb({ status: 'failure', message: err });
 			}
 		});
 	},
@@ -351,9 +492,9 @@ module.exports = {
 				if (!user) return next('User not found.');
 				next(null, user);
 			}
-		], (err, user) => {
+		], async (err, user) => {
 			if (err && err !== true) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("FIND_BY_SESSION", `User not found. "${err}"`);
 				cb({status: 'failure', message: err});
 			} else {
@@ -412,11 +553,11 @@ module.exports = {
 			},
 
 			(next) => {
-				db.models.user.update({ _id: updatingUserId }, {$set: {username: newUsername}}, next);
+				db.models.user.updateOne({ _id: updatingUserId }, {$set: {username: newUsername}}, {runValidators: true}, next);
 			}
-		], (err) => {
+		], async (err) => {
 			if (err && err !== true) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("UPDATE_USERNAME", `Couldn't update username for user "${updatingUserId}" to username "${newUsername}". "${err}"`);
 				cb({status: 'failure', message: err});
 			} else {
@@ -439,9 +580,9 @@ module.exports = {
 	 * @param {Function} cb - gets called with the result
 	 * @param {String} userId - the userId automatically added by hooks
 	 */
-	updateEmail: hooks.loginRequired((session, updatingUserId, newEmail, cb, userId) => {
+	updateEmail: hooks.loginRequired(async (session, updatingUserId, newEmail, cb, userId) => {
 		newEmail = newEmail.toLowerCase();
-		let verificationToken = utils.generateRandomString(64);
+		let verificationToken = await utils.generateRandomString(64);
 		async.waterfall([
 			(next) => {
 				if (updatingUserId === userId) return next(null, true);
@@ -470,7 +611,7 @@ module.exports = {
 			},
 
 			(next) => {
-				db.models.user.update({_id: updatingUserId}, {$set: {"email.address": newEmail, "email.verified": false, "email.verificationToken": verificationToken}}, next);
+				db.models.user.updateOne({_id: updatingUserId}, {$set: {"email.address": newEmail, "email.verified": false, "email.verificationToken": verificationToken}}, {runValidators: true}, next);
 			},
 
 			(res, next) => {
@@ -482,9 +623,9 @@ module.exports = {
 					next();
 				});
 			}
-		], (err) => {
+		], async (err) => {
 			if (err && err !== true) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("UPDATE_EMAIL", `Couldn't update email for user "${updatingUserId}" to email "${newEmail}". '${err}'`);
 				cb({status: 'failure', message: err});
 			} else {
@@ -517,12 +658,12 @@ module.exports = {
 				else return next();
 			},
 			(next) => {
-				db.models.user.update({_id: updatingUserId}, {$set: {role: newRole}}, next);
+				db.models.user.updateOne({_id: updatingUserId}, {$set: {role: newRole}}, {runValidators: true}, next);
 			}
 
-		], (err) => {
+		], async (err) => {
 			if (err && err !== true) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("UPDATE_ROLE", `User "${userId}" couldn't update role for user "${updatingUserId}" to role "${newRole}". "${err}"`);
 				cb({status: 'failure', message: err});
 			} else {
@@ -555,6 +696,11 @@ module.exports = {
 			},
 
 			(next) => {
+				if (!db.passwordValid(newPassword)) return next('Invalid password. Check if it meets all the requirements.');
+				return next();
+			},
+
+			(next) => {
 				bcrypt.genSalt(10, next);
 			},
 
@@ -564,16 +710,16 @@ module.exports = {
 			},
 
 			(hashedPassword, next) => {
-				db.models.user.update({_id: userId}, {$set: {"services.password.password": hashedPassword}}, next);
+				db.models.user.updateOne({_id: userId}, {$set: {"services.password.password": hashedPassword}}, next);
 			}
-		], (err) => {
+		], async (err) => {
 			if (err) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("UPDATE_PASSWORD", `Failed updating user password of user '${userId}'. '${err}'.`);
 				return cb({ status: 'failure', message: err });
 			}
 
-			logger.error("UPDATE_PASSWORD", `User '${userId}' updated their password.`);
+			logger.success("UPDATE_PASSWORD", `User '${userId}' updated their password.`);
 			cb({
 				status: 'success',
 				message: 'Password successfully updated.'
@@ -589,8 +735,8 @@ module.exports = {
 	 * @param {Function} cb - gets called with the result
 	 * @param {String} userId - the userId automatically added by hooks
 	 */
-	requestPassword: hooks.loginRequired((session, cb, userId) => {
-		let code = utils.generateRandomString(8);
+	requestPassword: hooks.loginRequired(async (session, cb, userId) => {
+		let code = await utils.generateRandomString(8);
 		async.waterfall([
 			(next) => {
 				db.models.user.findOne({_id: userId}, next);
@@ -605,15 +751,15 @@ module.exports = {
 			(user, next) => {
 				let expires = new Date();
 				expires.setDate(expires.getDate() + 1);
-				db.models.user.findOneAndUpdate({"email.address": user.email.address}, {$set: {"services.password": {set: {code: code, expires}}}}, next);
+				db.models.user.findOneAndUpdate({"email.address": user.email.address}, {$set: {"services.password": {set: {code: code, expires}}}}, {runValidators: true}, next);
 			},
 
 			(user, next) => {
 				mail.schemas.passwordRequest(user.email.address, user.username, code, next);
 			}
-		], (err) => {
+		], async (err) => {
 			if (err && err !== true) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("REQUEST_PASSWORD", `UserId '${userId}' failed to request password. '${err}'`);
 				cb({status: 'failure', message: err});
 			} else {
@@ -646,9 +792,9 @@ module.exports = {
 				if (user.services.password.set.expires < new Date()) return next('That code has expired.');
 				next(null);
 			}
-		], (err) => {
+		], async(err) => {
 			if (err && err !== true) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("VERIFY_PASSWORD_CODE", `Code '${code}' failed to verify. '${err}'`);
 				cb({status: 'failure', message: err});
 			} else {
@@ -684,6 +830,11 @@ module.exports = {
 			},
 
 			(next) => {
+				if (!db.passwordValid(newPassword)) return next('Invalid password. Check if it meets all the requirements.');
+				return next();
+			},
+
+			(next) => {
 				bcrypt.genSalt(10, next);
 			},
 
@@ -693,11 +844,11 @@ module.exports = {
 			},
 
 			(hashedPassword, next) => {
-				db.models.user.update({"services.password.set.code": code}, {$set: {"services.password.password": hashedPassword}, $unset: {"services.password.set": ''}}, next);
+				db.models.user.updateOne({"services.password.set.code": code}, {$set: {"services.password.password": hashedPassword}, $unset: {"services.password.set": ''}}, {runValidators: true}, next);
 			}
-		], (err) => {
+		], async (err) => {
 			if (err && err !== true) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("ADD_PASSWORD_WITH_CODE", `Code '${code}' failed to add password. '${err}'`);
 				cb({status: 'failure', message: err});
 			} else {
@@ -727,11 +878,11 @@ module.exports = {
 			(user, next) => {
 				if (!user) return next('Not logged in.');
 				if (!user.services.github || !user.services.github.id) return next('You can\'t remove password login without having GitHub login.');
-				db.models.user.update({_id: userId}, {$unset: {"services.password": ''}}, next);
+				db.models.user.updateOne({_id: userId}, {$unset: {"services.password": ''}}, next);
 			}
-		], (err) => {
+		], async (err) => {
 			if (err && err !== true) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("UNLINK_PASSWORD", `Unlinking password failed for userId '${userId}'. '${err}'`);
 				cb({status: 'failure', message: err});
 			} else {
@@ -761,11 +912,11 @@ module.exports = {
 			(user, next) => {
 				if (!user) return next('Not logged in.');
 				if (!user.services.password || !user.services.password.password) return next('You can\'t remove GitHub login without having password login.');
-				db.models.user.update({_id: userId}, {$unset: {"services.github": ''}}, next);
+				db.models.user.updateOne({_id: userId}, {$unset: {"services.github": ''}}, next);
 			}
-		], (err) => {
+		], async (err) => {
 			if (err && err !== true) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("UNLINK_GITHUB", `Unlinking GitHub failed for userId '${userId}'. '${err}'`);
 				cb({status: 'failure', message: err});
 			} else {
@@ -786,8 +937,8 @@ module.exports = {
 	 * @param {String} email - the email of the user that requests a password reset
 	 * @param {Function} cb - gets called with the result
 	 */
-	requestPasswordReset: (session, email, cb) => {
-		let code = utils.generateRandomString(8);
+	requestPasswordReset: async (session, email, cb) => {
+		let code = await utils.generateRandomString(8);
 		async.waterfall([
 			(next) => {
 				if (!email || typeof email !== 'string') return next('Invalid email.');
@@ -804,15 +955,15 @@ module.exports = {
 			(user, next) => {
 				let expires = new Date();
 				expires.setDate(expires.getDate() + 1);
-				db.models.user.findOneAndUpdate({"email.address": email}, {$set: {"services.password.reset": {code: code, expires}}}, next);
+				db.models.user.findOneAndUpdate({"email.address": email}, {$set: {"services.password.reset": {code: code, expires}}}, {runValidators: true}, next);
 			},
 
 			(user, next) => {
 				mail.schemas.resetPasswordRequest(user.email.address, user.username, code, next);
 			}
-		], (err) => {
+		], async (err) => {
 			if (err && err !== true) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("REQUEST_PASSWORD_RESET", `Email '${email}' failed to request password reset. '${err}'`);
 				cb({status: 'failure', message: err});
 			} else {
@@ -844,9 +995,9 @@ module.exports = {
 				if (!user.services.password.reset.expires > new Date()) return next('That code has expired.');
 				next(null);
 			}
-		], (err) => {
+		], async (err) => {
 			if (err && err !== true) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("VERIFY_PASSWORD_RESET_CODE", `Code '${code}' failed to verify. '${err}'`);
 				cb({status: 'failure', message: err});
 			} else {
@@ -881,6 +1032,11 @@ module.exports = {
 			},
 
 			(next) => {
+				if (!db.passwordValid(newPassword)) return next('Invalid password. Check if it meets all the requirements.');
+				return next();
+			},
+
+			(next) => {
 				bcrypt.genSalt(10, next);
 			},
 
@@ -890,11 +1046,11 @@ module.exports = {
 			},
 
 			(hashedPassword, next) => {
-				db.models.user.update({"services.password.reset.code": code}, {$set: {"services.password.password": hashedPassword}, $unset: {"services.password.reset": ''}}, next);
+				db.models.user.updateOne({"services.password.reset.code": code}, {$set: {"services.password.password": hashedPassword}, $unset: {"services.password.reset": ''}}, {runValidators: true}, next);
 			}
-		], (err) => {
+		], async (err) => {
 			if (err && err !== true) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("CHANGE_PASSWORD_WITH_RESET_CODE", `Code '${code}' failed to change password. '${err}'`);
 				cb({status: 'failure', message: err});
 			} else {
@@ -905,5 +1061,109 @@ module.exports = {
 				});
 			}
 		});
-	}
+	},
+
+	/**
+	 * Bans a user by userId
+	 *
+	 * @param {Object} session - the session object automatically added by socket.io
+	 * @param {String} value - the user id that is going to be banned
+	 * @param {String} reason - the reason for the ban
+	 * @param {String} expiresAt - the time the ban expires
+	 * @param {Function} cb - gets called with the result
+	 * @param {String} userId - the userId automatically added by hooks
+	 */
+	banUserById: hooks.adminRequired((session, value, reason, expiresAt, cb, userId) => {
+		async.waterfall([
+			(next) => {
+				if (value === '') return next('You must provide an IP address to ban.');
+				else if (reason === '') return next('You must provide a reason for the ban.');
+				else return next();
+			},
+
+			(next) => {
+				if (!expiresAt || typeof expiresAt !== 'string') return next('Invalid expire date.');
+				let date = new Date();
+				switch(expiresAt) {
+					case '1h':
+						expiresAt = date.setHours(date.getHours() + 1);
+						break;
+					case '12h':
+						expiresAt = date.setHours(date.getHours() + 12);
+						break;
+					case '1d':
+						expiresAt = date.setDate(date.getDate() + 1);
+						break;
+					case '1w':
+						expiresAt = date.setDate(date.getDate() + 7);
+						break;
+					case '1m':
+						expiresAt = date.setMonth(date.getMonth() + 1);
+						break;
+					case '3m':
+						expiresAt = date.setMonth(date.getMonth() + 3);
+						break;
+					case '6m':
+						expiresAt = date.setMonth(date.getMonth() + 6);
+						break;
+					case '1y':
+						expiresAt = date.setFullYear(date.getFullYear() + 1);
+						break;
+					case 'never':
+						expiresAt = new Date(3093527980800000);
+						break;
+					default:
+						return next('Invalid expire date.');
+				}
+
+				next();
+			},
+
+			(next) => {
+				punishments.addPunishment('banUserId', value, reason, expiresAt, userId, next)
+			},
+
+			(punishment, next) => {
+				cache.pub('user.ban', {userId: value, punishment});
+				next();
+			},
+		], async (err) => {
+			if (err && err !== true) {
+				err = await utils.getError(err);
+				logger.error("BAN_USER_BY_ID", `User ${userId} failed to ban user ${value} with the reason ${reason}. '${err}'`);
+				cb({status: 'failure', message: err});
+			} else {
+				logger.success("BAN_USER_BY_ID", `User ${userId} has successfully banned user ${value} with the reason ${reason}.`);
+				cb({
+					status: 'success',
+					message: 'Successfully banned user.'
+				});
+			}
+		});
+	}),
+
+	getFavoriteStations: hooks.loginRequired((session, cb, userId) => {
+		async.waterfall([
+			(next) => {
+				db.models.user.findOne({ _id: userId }, next);
+			},
+
+			(user, next) => {
+				if (!user) return next("User not found.");
+				next(null, user);
+			}
+		], async (err, user) => {
+			if (err && err !== true) {
+				err = await utils.getError(err);
+				logger.error("GET_FAVORITE_STATIONS", `User ${userId} failed to get favorite stations. '${err}'`);
+				cb({status: 'failure', message: err});
+			} else {
+				logger.success("GET_FAVORITE_STATIONS", `User ${userId} got favorite stations.`);
+				cb({
+					status: 'success',
+					favoriteStations: user.favoriteStations
+				});
+			}
+		});
+	})
 };

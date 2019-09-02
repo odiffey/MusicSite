@@ -1,54 +1,66 @@
 'use strict';
 
-const cache = require('./cache');
-const db = require('./db');
+const coreClass = require("../core");
+
 const async = require('async');
 
-module.exports = {
+module.exports = class extends coreClass {
+	constructor(name, moduleManager) {
+		super(name, moduleManager);
 
-	/**
-	 * Initializes the playlists module, and exits if it is unsuccessful
-	 *
-	 * @param {Function} cb - gets called once we're done initializing
-	 */
-	init: cb => {
-		async.waterfall([
-			(next) => {
-				cache.hgetall('playlists', next);
-			},
+		this.dependsOn = ["cache", "db", "utils"];
+	}
 
-			(playlists, next) => {
-				if (!playlists) return next();
-				let playlistIds = Object.keys(playlists);
-				async.each(playlistIds, (playlistId, next) => {
-					db.models.playlist.findOne({_id: playlistId}, (err, playlist) => {
-						if (err) next(err);
-						else if (!playlist) {
-							cache.hdel('playlists', playlistId, next);
-						}
-						else next();
-					});
-				}, next);
-			},
+	initialize() {
+		return new Promise((resolve, reject) => {
+			this.setStage(1);
 
-			(next) => {
-				db.models.playlist.find({}, next);
-			},
+			this.cache = this.moduleManager.modules["cache"];
+			this.db	= this.moduleManager.modules["db"];
+			this.utils	= this.moduleManager.modules["utils"];
 
-			(playlists, next) => {
-				async.each(playlists, (playlist, next) => {
-					cache.hset('playlists', playlist._id, cache.schemas.playlist(playlist), next);
-				}, next);
-			}
-		], (err) => {
-			if (err) {
-				console.log(`FAILED TO INITIALIZE PLAYLISTS. ABORTING. "${err.message}"`);
-				process.exit();
-			} else {
-				cb();
-			}
+			async.waterfall([
+				(next) => {
+					this.setStage(2);
+					this.cache.hgetall('playlists', next);
+				},
+	
+				(playlists, next) => {
+					this.setStage(3);
+					if (!playlists) return next();
+					let playlistIds = Object.keys(playlists);
+					async.each(playlistIds, (playlistId, next) => {
+						this.db.models.playlist.findOne({_id: playlistId}, (err, playlist) => {
+							if (err) next(err);
+							else if (!playlist) {
+								this.cache.hdel('playlists', playlistId, next);
+							}
+							else next();
+						});
+					}, next);
+				},
+	
+				(next) => {
+					this.setStage(4);
+					this.db.models.playlist.find({}, next);
+				},
+	
+				(playlists, next) => {
+					this.setStage(5);
+					async.each(playlists, (playlist, next) => {
+						this.cache.hset('playlists', playlist._id, this.cache.schemas.playlist(playlist), next);
+					}, next);
+				}
+			], async (err) => {
+				if (err) {
+					err = await this.utils.getError(err);
+					reject(err);
+				} else {
+					resolve();
+				}
+			});
 		});
-	},
+	}
 
 	/**
 	 * Gets a playlist by id from the cache or Mongo, and if it isn't in the cache yet, adds it the cache
@@ -56,20 +68,22 @@ module.exports = {
 	 * @param {String} playlistId - the id of the playlist we are trying to get
 	 * @param {Function} cb - gets called once we're done initializing
 	 */
-	getPlaylist: (playlistId, cb) => {
+	async getPlaylist(playlistId, cb) {
+		try { await this._validateHook(); } catch { return; }
+
 		async.waterfall([
 			(next) => {
-				cache.hgetall('playlists', next);
+				this.cache.hgetall('playlists', next);
 			},
 
 			(playlists, next) => {
 				if (!playlists) return next();
 				let playlistIds = Object.keys(playlists);
 				async.each(playlistIds, (playlistId, next) => {
-					db.models.playlist.findOne({_id: playlistId}, (err, playlist) => {
+					this.db.models.playlist.findOne({_id: playlistId}, (err, playlist) => {
 						if (err) next(err);
 						else if (!playlist) {
-							cache.hdel('playlists', playlistId, next);
+							this.cache.hdel('playlists', playlistId, next);
 						}
 						else next();
 					});
@@ -77,17 +91,17 @@ module.exports = {
 			},
 
 			(next) => {
-				cache.hget('playlists', playlistId, next);
+				this.cache.hget('playlists', playlistId, next);
 			},
 
 			(playlist, next) => {
 				if (playlist) return next(true, playlist);
-				db.models.playlist.findOne({ _id: playlistId }, next);
+				this.db.models.playlist.findOne({ _id: playlistId }, next);
 			},
 
 			(playlist, next) => {
 				if (playlist) {
-					cache.hset('playlists', playlistId, playlist, next);
+					this.cache.hset('playlists', playlistId, playlist, next);
 				} else next('Playlist not found');
 			},
 
@@ -95,7 +109,7 @@ module.exports = {
 			if (err && err !== true) return cb(err);
 			else cb(null, playlist);
 		});
-	},
+	}
 
 	/**
 	 * Gets a playlist from id from Mongo and updates the cache with it
@@ -103,26 +117,27 @@ module.exports = {
 	 * @param {String} playlistId - the id of the playlist we are trying to update
 	 * @param {Function} cb - gets called when an error occurred or when the operation was successful
 	 */
-	updatePlaylist: (playlistId, cb) => {
-		async.waterfall([
+	async updatePlaylist(playlistId, cb) {
+		try { await this._validateHook(); } catch { return; }
 
+		async.waterfall([
 			(next) => {
-				db.models.playlist.findOne({ _id: playlistId }, next);
+				this.db.models.playlist.findOne({ _id: playlistId }, next);
 			},
 
 			(playlist, next) => {
 				if (!playlist) {
-					cache.hdel('playlists', playlistId);
+					this.cache.hdel('playlists', playlistId);
 					return next('Playlist not found');
 				}
-				cache.hset('playlists', playlistId, playlist, next);
+				this.cache.hset('playlists', playlistId, playlist, next);
 			}
 
 		], (err, playlist) => {
-			if (err && err !== true) cb(err);
+			if (err && err !== true) return cb(err);
 			cb(null, playlist);
 		});
-	},
+	}
 
 	/**
 	 * Deletes playlist from id from Mongo and cache
@@ -130,21 +145,23 @@ module.exports = {
 	 * @param {String} playlistId - the id of the playlist we are trying to delete
 	 * @param {Function} cb - gets called when an error occurred or when the operation was successful
 	 */
-	deletePlaylist: (playlistId, cb) => {
+	async deletePlaylist(playlistId, cb) {
+		try { await this._validateHook(); } catch { return; }
+
 		async.waterfall([
 
 			(next) => {
-				db.models.playlist.remove({ _id: playlistId }, next);
+				this.db.models.playlist.deleteOne({ _id: playlistId }, next);
 			},
 
 			(res, next) => {
-				cache.hdel('playlists', playlistId, next);
+				this.cache.hdel('playlists', playlistId, next);
 			}
 
 		], (err) => {
-			if (err && err !== true) cb(err);
+			if (err && err !== true) return cb(err);
 
 			cb(null);
 		});
 	}
-};
+}

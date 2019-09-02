@@ -1,20 +1,22 @@
 'use strict';
 
-const db = require('../db');
-const io = require('../io');
-const cache = require('../cache');
-const utils = require('../utils');
-const logger = require('../logger');
-const hooks = require('./hooks');
 const async = require('async');
-const playlists = require('../playlists');
-const songs = require('../songs');
+
+const hooks = require('./hooks');
+const moduleManager = require("../../index");
+
+const db = moduleManager.modules["db"];
+const cache = moduleManager.modules["cache"];
+const utils = moduleManager.modules["utils"];
+const logger = moduleManager.modules["logger"];
+const playlists = moduleManager.modules["playlists"];
+const songs = moduleManager.modules["songs"];
 
 cache.sub('playlist.create', playlistId => {
 	playlists.getPlaylist(playlistId, (err, playlist) => {
 		if (!err) {
 			utils.socketsFromUser(playlist.createdBy, (sockets) => {
-				sockets.forEach((socket) => {
+				sockets.forEach(socket => {
 					socket.emit('event:playlist.create', playlist);
 				});
 			});
@@ -23,48 +25,48 @@ cache.sub('playlist.create', playlistId => {
 });
 
 cache.sub('playlist.delete', res => {
-	utils.socketsFromUser(res.userId, (sockets) => {
-		sockets.forEach((socket) => {
+	utils.socketsFromUser(res.userId, sockets => {
+		sockets.forEach(socket => {
 			socket.emit('event:playlist.delete', res.playlistId);
 		});
 	});
 });
 
 cache.sub('playlist.moveSongToTop', res => {
-	utils.socketsFromUser(res.userId, (sockets) => {
-		sockets.forEach((socket) => {
+	utils.socketsFromUser(res.userId, sockets => {
+		sockets.forEach(socket => {
 			socket.emit('event:playlist.moveSongToTop', {playlistId: res.playlistId, songId: res.songId});
 		});
 	});
 });
 
 cache.sub('playlist.moveSongToBottom', res => {
-	utils.socketsFromUser(res.userId, (sockets) => {
-		sockets.forEach((socket) => {
+	utils.socketsFromUser(res.userId, sockets => {
+		sockets.forEach(socket => {
 			socket.emit('event:playlist.moveSongToBottom', {playlistId: res.playlistId, songId: res.songId});
 		});
 	});
 });
 
 cache.sub('playlist.addSong', res => {
-	utils.socketsFromUser(res.userId, (sockets) => {
-		sockets.forEach((socket) => {
+	utils.socketsFromUser(res.userId, sockets => {
+		sockets.forEach(socket => {
 			socket.emit('event:playlist.addSong', { playlistId: res.playlistId, song: res.song });
 		});
 	});
 });
 
 cache.sub('playlist.removeSong', res => {
-	utils.socketsFromUser(res.userId, (sockets) => {
-		sockets.forEach((socket) => {
+	utils.socketsFromUser(res.userId, sockets => {
+		sockets.forEach(socket => {
 			socket.emit('event:playlist.removeSong', { playlistId: res.playlistId, songId: res.songId });
 		});
 	});
 });
 
 cache.sub('playlist.updateDisplayName', res => {
-	utils.socketsFromUser(res.userId, (sockets) => {
-		sockets.forEach((socket) => {
+	utils.socketsFromUser(res.userId, sockets => {
+		sockets.forEach(socket => {
 			socket.emit('event:playlist.updateDisplayName', { playlistId: res.playlistId, displayName: res.displayName });
 		});
 	});
@@ -90,9 +92,9 @@ let lib = {
 				if (!playlist || playlist.createdBy !== userId) return next('Playlist not found.');
 				next(null, playlist.songs[0]);
 			}
-		], (err, song) => {
+		], async (err, song) => {
 			if (err) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("PLAYLIST_GET_FIRST_SONG", `Getting the first song of playlist "${playlistId}" failed for user "${userId}". "${err}"`);
 				return cb({ status: 'failure', message: err});
 			}
@@ -116,9 +118,9 @@ let lib = {
 			(next) => {
 				db.models.playlist.find({ createdBy: userId }, next);
 			}
-		], (err, playlists) => {
+		], async (err, playlists) => {
 			if (err) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("PLAYLIST_INDEX_FOR_USER", `Indexing playlists for user "${userId}" failed. "${err}"`);
 				return cb({ status: 'failure', message: err});
 			}
@@ -155,15 +157,17 @@ let lib = {
 				}, next);
 			}
 
-		], (err, playlist) => {
+		], async (err, playlist) => {
 			if (err) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("PLAYLIST_CREATE", `Creating private playlist failed for user "${userId}". "${err}"`);
 				return cb({ status: 'failure', message: err});
 			}
 			cache.pub('playlist.create', playlist._id);
 			logger.success("PLAYLIST_CREATE", `Successfully created private playlist for user "${userId}".`);
-			cb({ 'status': 'success', 'message': 'Successfully created playlist' });
+			cb({ status: 'success', message: 'Successfully created playlist', data: {
+				_id: playlist._id
+			} });
 		});
 	}),
 
@@ -185,9 +189,9 @@ let lib = {
 				if (!playlist || playlist.createdBy !== userId) return next('Playlist not found');
 				next(null, playlist);
 			}
-		], (err, playlist) => {
+		], async (err, playlist) => {
 			if (err) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("PLAYLIST_GET", `Getting private playlist "${playlistId}" failed for user "${userId}". "${err}"`);
 				return cb({ status: 'failure', message: err});
 			}
@@ -212,15 +216,15 @@ let lib = {
 	update: hooks.loginRequired((session, playlistId, playlist, cb, userId) => {
 		async.waterfall([
 			(next) => {
-				db.models.playlist.update({ _id: playlistId, createdBy: userId }, playlist, next);
+				db.models.playlist.updateOne({ _id: playlistId, createdBy: userId }, playlist, {runValidators: true}, next);
 			},
 
 			(res, next) => {
 				playlists.updatePlaylist(playlistId, next)
 			}
-		], (err, playlist) => {
+		], async (err, playlist) => {
 			if (err) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("PLAYLIST_UPDATE", `Updating private playlist "${playlistId}" failed for user "${userId}". "${err}"`);
 				return cb({ status: 'failure', message: err});
 			}
@@ -270,7 +274,7 @@ let lib = {
 				});
 			},
 			(newSong, next) => {
-				db.models.playlist.update({ _id: playlistId }, { $push: { songs: newSong } }, (err) => {
+				db.models.playlist.updateOne({_id: playlistId}, {$push: {songs: newSong}}, {runValidators: true}, (err) => {
 					if (err) return next(err);
 					playlists.updatePlaylist(playlistId, (err, playlist) => {
 						next(err, playlist, newSong);
@@ -278,15 +282,16 @@ let lib = {
 				});
 			}
 		],
-		(err, playlist, newSong) => {
+		async (err, playlist, newSong) => {
 			if (err) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("PLAYLIST_ADD_SONG", `Adding song "${songId}" to private playlist "${playlistId}" failed for user "${userId}". "${err}"`);
 				return cb({ status: 'failure', message: err});
+			} else {
+				logger.success("PLAYLIST_ADD_SONG", `Successfully added song "${songId}" to private playlist "${playlistId}" for user "${userId}".`);
+				cache.pub('playlist.addSong', { playlistId: playlist._id, song: newSong, userId });
+				return cb({ status: 'success', message: 'Song has been successfully added to the playlist', data: playlist.songs });
 			}
-			logger.success("PLAYLIST_ADD_SONG", `Successfully added song "${songId}" to private playlist "${playlistId}" for user "${userId}".`);
-			cache.pub('playlist.addSong', { playlistId: playlist._id, song: newSong, userId: userId });
-			return cb({ status: 'success', message: 'Song has been successfully added to the playlist', data: playlist.songs });
 		});
 	}),
 
@@ -326,14 +331,15 @@ let lib = {
 				if (!playlist || playlist.createdBy !== userId) return next('Playlist not found.');
 				next(null, playlist);
 			}
-		], (err, playlist) => {
+		], async (err, playlist) => {
 			if (err) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("PLAYLIST_IMPORT", `Importing a YouTube playlist to private playlist "${playlistId}" failed for user "${userId}". "${err}"`);
 				return cb({ status: 'failure', message: err});
+			} else {
+				logger.success("PLAYLIST_IMPORT", `Successfully imported a YouTube playlist to private playlist "${playlistId}" for user "${userId}".`);
+				cb({ status: 'success', message: 'Playlist has been successfully imported.', data: playlist.songs });
 			}
-			logger.success("PLAYLIST_IMPORT", `Successfully imported a YouTube playlist to private playlist "${playlistId}" for user "${userId}".`);
-			cb({ status: 'success', message: 'Playlist has been successfully imported.', data: playlist.songs });
 		});
 	}),
 
@@ -360,21 +366,22 @@ let lib = {
 
 			(playlist, next) => {
 				if (!playlist || playlist.createdBy !== userId) return next('Playlist not found');
-				db.models.playlist.update({_id: playlistId}, {$pull: {songs: {songId: songId}}}, next);
+				db.models.playlist.updateOne({_id: playlistId}, {$pull: {songs: {songId: songId}}}, next);
 			},
 
 			(res, next) => {
 				playlists.updatePlaylist(playlistId, next);
 			}
-		], (err, playlist) => {
+		], async (err, playlist) => {
 			if (err) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("PLAYLIST_REMOVE_SONG", `Removing song "${songId}" from private playlist "${playlistId}" failed for user "${userId}". "${err}"`);
 				return cb({ status: 'failure', message: err});
+			} else {
+				logger.success("PLAYLIST_REMOVE_SONG", `Successfully removed song "${songId}" from private playlist "${playlistId}" for user "${userId}".`);
+				cache.pub('playlist.removeSong', { playlistId: playlist._id, songId: songId, userId });
+				return cb({ status: 'success', message: 'Song has been successfully removed from playlist', data: playlist.songs });
 			}
-			logger.success("PLAYLIST_REMOVE_SONG", `Successfully removed song "${songId}" from private playlist "${playlistId}" for user "${userId}".`);
-			cache.pub('playlist.removeSong', {playlistId: playlist._id, songId: songId, userId: userId});
-			return cb({ status: 'success', message: 'Song has been successfully removed from playlist', data: playlist.songs });
 		});
 	}),
 
@@ -389,15 +396,15 @@ let lib = {
 	updateDisplayName: hooks.loginRequired((session, playlistId, displayName, cb, userId) => {
 		async.waterfall([
 			(next) => {
-				db.models.playlist.update({ _id: playlistId, createdBy: userId }, { $set: { displayName } }, next);
+				db.models.playlist.updateOne({ _id: playlistId, createdBy: userId }, { $set: { displayName } }, {runValidators: true}, next);
 			},
 
 			(res, next) => {
 				playlists.updatePlaylist(playlistId, next);
 			}
-		], (err, playlist) => {
+		], async (err, playlist) => {
 			if (err) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("PLAYLIST_UPDATE_DISPLAY_NAME", `Updating display name to "${displayName}" for private playlist "${playlistId}" failed for user "${userId}". "${err}"`);
 				return cb({ status: 'failure', message: err});
 			}
@@ -434,14 +441,14 @@ let lib = {
 			},
 
 			(song, next) => {
-				db.models.playlist.update({_id: playlistId}, {$pull: {songs: {songId}}}, (err) => {
+				db.models.playlist.updateOne({_id: playlistId}, {$pull: {songs: {songId}}}, (err) => {
 					if (err) return next(err);
 					return next(null, song);
 				});
 			},
 
 			(song, next) => {
-				db.models.playlist.update({_id: playlistId}, {
+				db.models.playlist.updateOne({_id: playlistId}, {
 					$push: {
 						songs: {
 							$each: [song],
@@ -454,9 +461,9 @@ let lib = {
 			(res, next) => {
 				playlists.updatePlaylist(playlistId, next);
 			}
-		], (err, playlist) => {
+		], async (err, playlist) => {
 			if (err) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("PLAYLIST_MOVE_SONG_TO_TOP", `Moving song "${songId}" to the top for private playlist "${playlistId}" failed for user "${userId}". "${err}"`);
 				return cb({ status: 'failure', message: err});
 			}
@@ -493,14 +500,14 @@ let lib = {
 			},
 
 			(song, next) => {
-				db.models.playlist.update({_id: playlistId}, {$pull: {songs: {songId}}}, (err) => {
+				db.models.playlist.updateOne({_id: playlistId}, {$pull: {songs: {songId}}}, (err) => {
 					if (err) return next(err);
 					return next(null, song);
 				});
 			},
 
 			(song, next) => {
-				db.models.playlist.update({_id: playlistId}, {
+				db.models.playlist.updateOne({_id: playlistId}, {
 					$push: {
 						songs: song
 					}
@@ -510,9 +517,9 @@ let lib = {
 			(res, next) => {
 				playlists.updatePlaylist(playlistId, next);
 			}
-		], (err, playlist) => {
+		], async (err, playlist) => {
 			if (err) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("PLAYLIST_MOVE_SONG_TO_BOTTOM", `Moving song "${songId}" to the bottom for private playlist "${playlistId}" failed for user "${userId}". "${err}"`);
 				return cb({ status: 'failure', message: err});
 			}
@@ -535,9 +542,9 @@ let lib = {
 			(next) => {
 				playlists.deletePlaylist(playlistId, next);
 			}
-		], (err) => {
+		], async (err) => {
 			if (err) {
-				err = utils.getError(err);
+				err = await utils.getError(err);
 				logger.error("PLAYLIST_REMOVE", `Removing private playlist "${playlistId}" failed for user "${userId}". "${err}"`);
 				return cb({ status: 'failure', message: err});
 			}
