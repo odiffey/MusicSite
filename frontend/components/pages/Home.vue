@@ -268,9 +268,7 @@ export default {
 			this.socket.emit("apis.joinRoom", "home", () => {});
 		},
 		isOwner(station) {
-			return (
-				station.owner === this.userId && station.privacy === "public"
-			);
+			return station.owner === this.userId;
 		},
 		isFavorite(station) {
 			return this.favoriteStations.indexOf(station._id) !== -1;
@@ -471,8 +469,10 @@ html {
 				bottom: 12px;
 				right: 12px;
 				.material-icons {
-					margin-left: 5px;
 					font-size: 22px;
+				}
+				.material-icons:first-child {
+					margin-left: 5px;
 				}
 				.privateIcon {
 					color: $dark-pink;
