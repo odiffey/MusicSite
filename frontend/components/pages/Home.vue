@@ -552,6 +552,7 @@ html {
 			}
 			.info {
 				width: calc(100% - 100px);
+				max-width: none;
 				.displayName {
 					font-size: 18px !important;
 				}
