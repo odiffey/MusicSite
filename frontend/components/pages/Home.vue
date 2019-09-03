@@ -49,8 +49,21 @@
 									onerror="this.src='/assets/notes-transparent.png'"
 									class="ytThumbnail"
 								/>
+								<div
+									v-if="
+										station.type === 'official' &&
+											station.currentSong.thumbnail
+									"
+									class="albumArtBg"
+									v-bind:style="{
+										'background-image':
+											'url(' +
+											station.currentSong.thumbnail +
+											')'
+									}"
+								></div>
 								<img
-									v-else
+									v-if="station.currentSong.thumbnail"
 									:src="station.currentSong.thumbnail"
 									onerror="this.src='/assets/notes-transparent.png'"
 								/>
@@ -515,21 +528,35 @@ html {
 		height: auto;
 		.topContent {
 			.albumArt {
-				max-height: 100px;
+				max-height: 100%;
 				max-width: 100px;
+				.albumArtBg {
+					background: url("/assets/notes-transparent.png") no-repeat
+						center center;
+					background-size: cover;
+					height: 100%;
+					width: 100%;
+					position: absolute;
+					top: 0;
+					filter: blur(5px);
+					display: inline-flex;
+				}
+				img {
+					height: auto;
+					width: 100%;
+					top: 0;
+					margin-top: auto;
+					margin-bottom: auto;
+					z-index: 1;
+				}
 			}
 			.info {
 				width: calc(100% - 100px);
-				padding: 5px 2px 2px 10px !important;
 				.displayName {
-					font-size: 16px !important;
-					margin-bottom: 3px !important;
+					font-size: 18px !important;
 				}
 				.description {
-					font-size: 12px !important;
-					-webkit-line-clamp: 2;
-					line-height: 15px;
-					max-height: 30px;
+					font-size: 13px !important;
 				}
 			}
 		}
