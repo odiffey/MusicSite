@@ -465,6 +465,7 @@ html {
 		}
 	}
 	.bottomBar {
+		display: inline-flex;
 		background: $primary-color;
 		box-shadow: inset 0px 2px 4px rgba(7, 136, 191, 0.6);
 		width: 100%;
@@ -477,10 +478,14 @@ html {
 			vertical-align: middle;
 			margin-left: 12px;
 			font-size: 22px;
+			line-height: 30px;
 		}
 		.songTitle {
 			vertical-align: middle;
 			margin-left: 5px;
+			line-height: 30px;
+			flex: 2 1 0;
+			overflow: hidden;
 		}
 		.right {
 			float: right;
