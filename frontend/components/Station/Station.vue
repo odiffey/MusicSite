@@ -1251,9 +1251,13 @@ export default {
 .slide-leave-active {
 	transition: all 0.3s ease;
 }
-.slide-enter,
+.slide-enter {
+	opacity: 0;
+	transform: translateY(-300px);
+}
 .slide-leave-to {
-	transform: translateX(300px);
+	transform: translateY(300px);
+	opacity: 0;
 }
 
 .no-song {

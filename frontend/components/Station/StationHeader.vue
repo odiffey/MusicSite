@@ -280,6 +280,7 @@ export default {
 .nav {
 	background-color: $primary-color;
 	line-height: 64px;
+	z-index: 3;
 	border-radius: 0% 0% 33% 33% / 0% 0% 7% 7%;
 	box-shadow: 2px 0 5px 0 rgba(0, 0, 0, 0.16),
 		2px 0 10px 0 rgba(0, 0, 0, 0.12);
@@ -387,7 +388,7 @@ a.nav-item.is-tab:hover {
 
 .control-sidebar {
 	position: fixed;
-	z-index: 1;
+	z-index: 2;
 	top: 0;
 	left: 0;
 	width: 64px;
@@ -468,7 +469,7 @@ a.nav-item.is-tab:hover {
 	border-radius: 6px;
 	padding: 5px;
 	position: absolute;
-	z-index: 1;
+	z-index: 2;
 	left: 115%;
 	opacity: 0;
 	transition: opacity 0.5s;

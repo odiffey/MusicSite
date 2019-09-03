@@ -145,7 +145,7 @@ export default {
 	position: fixed;
 	z-index: 1;
 	top: 0;
-	right: 0;
+	left: 64px;
 	width: 300px;
 	height: 100vh;
 	background-color: $white;
@@ -168,13 +168,13 @@ export default {
 }
 
 .slide-transition {
-	transition: transform 0.6s ease-in-out;
-	transform: translateX(0);
+	transition: transform 0.3s ease-in-out;
+	transform: translateY(0);
 }
 
 .slide-enter,
 .slide-leave {
-	transform: translateX(100%);
+	transform: translateY(100%);
 }
 
 .title {
