@@ -338,8 +338,14 @@ html {
 	flex: 1;
 	flex-wrap: wrap;
 	justify-content: center;
-	margin-left: 10px;
-	margin-right: 10px;
+	margin-left: 50px;
+	margin-right: 50px;
+}
+@media screen and (max-width: 575px) {
+	.stations {
+		margin-left: 10px;
+		margin-right: 10px;
+	}
 }
 .stationCard {
 	display: inline-flex;
@@ -465,6 +471,7 @@ html {
 		}
 	}
 	.bottomBar {
+		display: inline-flex;
 		background: $primary-color;
 		box-shadow: inset 0px 2px 4px rgba(7, 136, 191, 0.6);
 		width: 100%;
@@ -477,10 +484,14 @@ html {
 			vertical-align: middle;
 			margin-left: 12px;
 			font-size: 22px;
+			line-height: 30px;
 		}
 		.songTitle {
 			vertical-align: middle;
 			margin-left: 5px;
+			line-height: 30px;
+			flex: 2 1 0;
+			overflow: hidden;
 		}
 		.right {
 			float: right;
@@ -498,7 +509,7 @@ html {
 	transition: all ease-in-out 0.2s;
 }
 
-@media screen and (max-width: 490px) {
+@media screen and (max-width: 575px) {
 	.stationCard {
 		width: calc(100% - 20px);
 		height: auto;
