@@ -281,6 +281,8 @@ export default {
 	background-color: $primary-color;
 	line-height: 64px;
 	border-radius: 0% 0% 33% 33% / 0% 0% 7% 7%;
+	box-shadow: 2px 0 5px 0 rgba(0, 0, 0, 0.16),
+		2px 0 10px 0 rgba(0, 0, 0, 0.12);
 
 	.is-brand {
 		font-size: 2.1rem !important;
