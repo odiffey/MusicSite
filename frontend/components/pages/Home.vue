@@ -338,8 +338,14 @@ html {
 	flex: 1;
 	flex-wrap: wrap;
 	justify-content: center;
-	margin-left: 10px;
-	margin-right: 10px;
+	margin-left: 50px;
+	margin-right: 50px;
+}
+@media screen and (max-width: 575px) {
+	.stations {
+		margin-left: 10px;
+		margin-right: 10px;
+	}
 }
 .stationCard {
 	display: inline-flex;
@@ -503,7 +509,7 @@ html {
 	transition: all ease-in-out 0.2s;
 }
 
-@media screen and (max-width: 490px) {
+@media screen and (max-width: 575px) {
 	.stationCard {
 		width: calc(100% - 20px);
 		height: auto;
