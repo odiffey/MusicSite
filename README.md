@@ -2,11 +2,16 @@
   
 # MusareNode
 
+Staging: [![Build Status](https://travis-ci.org/odiffey/MusareNode.svg?branch=staging)](https://travis-ci.org/odiffey/MusareNode)
+
+Experimental: [![Build Status](https://travis-ci.org/odiffey/MusareNode.svg?branch=experimental)](https://travis-ci.org/odiffey/MusareNode)
+
 Based off of the original [Musare](https://github.com/Musare/MusareMeteor), which utilized Meteor.
 
 MusareNode now uses NodeJS, Express, SocketIO and VueJS - among other technologies. We have also implemented the ability to host Musare in [Docker Containers](https://www.docker.com/).
 
 The master branch is available at [musare.com](https://musare.com)
+
 You can also find the staging branch at [musare.dev](https://musare.dev)
 
 ## Contact
