@@ -215,7 +215,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "styles/global.scss";
+@import "scss/variables/colors.scss";
 
 .save-changes {
 	color: $white;

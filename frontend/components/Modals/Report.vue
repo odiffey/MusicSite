@@ -263,7 +263,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "styles/global.scss";
+@import "scss/variables/colors.scss";
 
 h6 {
 	margin-bottom: 15px;

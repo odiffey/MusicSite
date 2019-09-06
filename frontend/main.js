@@ -6,6 +6,8 @@ import store from "./store";
 import App from "./App.vue";
 import io from "./io";
 
+import "./scss/global.scss";
+
 const handleMetadata = attrs => {
 	document.title = `Musare | ${attrs.title}`;
 };

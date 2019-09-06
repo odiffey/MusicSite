@@ -1267,7 +1267,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "styles/global.scss";
+@import "scss/variables/colors.scss";
 
 #genre-helper-container {
 	background-color: white;
@@ -1318,7 +1318,7 @@ export default {
 </style>
 
 <style lang="scss" scoped>
-@import "styles/global.scss";
+@import "scss/variables/colors.scss";
 .modal-card-body > div {
 	display: flex;
 	height: 100%;

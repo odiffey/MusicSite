@@ -125,7 +125,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "styles/global.scss";
+@import "scss/variables/colors.scss";
 
 .container {
 	padding: 25px;

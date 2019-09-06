@@ -1234,7 +1234,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "styles/global.scss";
+@import "scss/variables/colors.scss";
 
 .player-can-not-autoplay {
 	position: absolute;

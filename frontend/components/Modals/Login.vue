@@ -122,7 +122,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "styles/global.scss";
+@import "scss/variables/colors.scss";
 
 .button.is-github {
 	background-color: $dark-grey-2;

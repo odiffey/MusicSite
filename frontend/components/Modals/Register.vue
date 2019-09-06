@@ -148,7 +148,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "styles/global.scss";
+@import "scss/variables/colors.scss";
 
 .button.is-github {
 	background-color: $dark-grey-2;
@@ -176,7 +176,7 @@ a {
 </style>
 
 <style lang="scss">
-@import "styles/global.scss";
+@import "scss/variables/colors.scss";
 
 .grecaptcha-badge {
 	z-index: 2000;

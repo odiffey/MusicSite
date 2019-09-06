@@ -213,7 +213,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "styles/global.scss";
+@import "scss/variables/colors.scss";
 
 .optionsColumn {
 	width: 140px;

@@ -106,7 +106,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "styles/global.scss";
+@import "scss/variables/colors.scss";
 
 body {
 	font-family: "Roboto", sans-serif;

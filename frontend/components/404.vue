@@ -10,7 +10,7 @@
 </template>
 
 <style lang="scss" scoped>
-@import "styles/global.scss";
+@import "scss/variables/colors.scss";
 
 * {
 	margin: 0;

@@ -307,7 +307,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "styles/global.scss";
+@import "scss/variables/colors.scss";
 
 * {
 	box-sizing: border-box;
