@@ -1,8 +1,12 @@
 <template>
 	<div>
-		<metadata v-bind:title="`${station.displayName}`" />
+		<metadata
+			v-if="exists && !loading"
+			v-bind:title="`${station.displayName}`"
+		/>
+		<metadata v-else-if="!exists && !loading" v-bind:title="`Not found`" />
 
-		<station-header />
+		<station-header v-if="exists" />
 
 		<song-queue v-if="modals.addSongToQueue" />
 		<add-to-playlist v-if="modals.addSongToPlaylist" />
@@ -1010,6 +1014,9 @@ export default {
 						}
 						this.systemDifference = difference;
 					});
+				} else {
+					this.loading = false;
+					this.exists = false;
 				}
 			});
 		},
@@ -1044,8 +1051,6 @@ export default {
 				if (res.status === "failure") {
 					this.loading = false;
 					this.exists = false;
-				} else {
-					this.exists = true;
 				}
 			});
 			this.socket.on("event:songs.next", data => {
