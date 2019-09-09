@@ -29,6 +29,20 @@ Vue.component("metadata", {
 
 Vue.use(VueRouter);
 
+Vue.directive("scroll", {
+	inserted(el, binding) {
+		const f = evt => {
+			clearTimeout(window.scrollDebounceId);
+			window.scrollDebounceId = setTimeout(() => {
+				if (binding.value(evt, el)) {
+					window.removeEventListener("scroll", f);
+				}
+			}, 200);
+		};
+		window.addEventListener("scroll", f);
+	}
+});
+
 const router = new VueRouter({
 	mode: "history",
 	routes: [
@@ -157,14 +171,6 @@ router.beforeEach((to, from, next) => {
 				}
 			);
 		}
-	} else if (to.name === "station") {
-		io.getSocket(socket => {
-			socket.emit("stations.findByName", to.params.id, res => {
-				if (res.status === "success") {
-					next();
-				}
-			});
-		});
 	} else next();
 });
 
