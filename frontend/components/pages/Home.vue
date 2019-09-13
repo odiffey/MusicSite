@@ -69,27 +69,31 @@
 								/>
 							</div>
 							<div class="info">
-								<h5 class="displayName">
-									{{ station.displayName }}
+								<div class="displayName">
+									<i
+										v-if="loggedIn && !isFavorite(station)"
+										@click="
+											favoriteStation($event, station)
+										"
+										class="favorite material-icons"
+										>star_border</i
+									>
+									<i
+										v-if="loggedIn && isFavorite(station)"
+										@click="
+											unfavoriteStation($event, station)
+										"
+										class="favorite material-icons"
+										>star</i
+									>
+									<h5>{{ station.displayName }}</h5>
 									<i
 										v-if="station.type === 'official'"
 										class="badge material-icons"
 									>
 										verified_user
 									</i>
-								</h5>
-								<i
-									v-if="loggedIn && !isFavorite(station)"
-									@click="favoriteStation($event, station)"
-									class="favorite material-icons"
-									>star_border</i
-								>
-								<i
-									v-if="loggedIn && isFavorite(station)"
-									@click="unfavoriteStation($event, station)"
-									class="favorite material-icons"
-									>star</i
-								>
+								</div>
 								<p class="description">
 									{{ station.description }}
 								</p>
@@ -361,8 +365,8 @@ html {
 .stationCard {
 	display: inline-flex;
 	flex-direction: column;
-	width: 450px;
-	height: 180px;
+	width: 300px;
+	height: 475px;
 	background: $white;
 	box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);
 	color: $dark-grey;
@@ -371,10 +375,10 @@ html {
 	cursor: pointer;
 	overflow: hidden;
 	.albumArt {
-		display: inline-flex;
+		display: flex;
 		position: relative;
-		height: 150px;
-		width: 150px;
+		height: 300px;
+		width: 300px;
 		box-shadow: 1px 0px 3px rgba(7, 136, 191, 0.3);
 		overflow: hidden;
 		img {
@@ -403,41 +407,49 @@ html {
 	.topContent {
 		width: 100%;
 		height: 100%;
-		display: inline-flex;
 		.info {
 			padding: 15px 12px 12px 15px;
 			position: relative;
 			width: 100%;
 			max-width: 300px;
+			height: 145px;
 			.displayName {
 				color: $black;
 				margin: 0;
 				font-size: 20px;
 				font-weight: 500;
 				margin-bottom: 5px;
-				width: calc(100% - 30px);
-				word-wrap: break-word;
-				overflow: hidden;
-				text-overflow: ellipsis;
-				display: -webkit-box;
-				-webkit-box-orient: vertical;
+				width: 100%;
+				display: flex;
 				-webkit-line-clamp: 1;
 				line-height: 30px;
 				max-height: 30px;
+				.favorite {
+					position: relative;
+					padding-right: 5px;
+					color: $yellow;
+					top: -1px;
+					font-size: 28px;
+				}
+				h5 {
+					font-size: 20px;
+					font-weight: 500;
+					margin: 0;
+					line-height: 30px;
+					text-overflow: ellipsis;
+					word-wrap: break-word;
+					overflow: hidden;
+					max-width: calc(100% - 80px);
+					-webkit-box-orient: vertical;
+					white-space: nowrap;
+				}
 				.badge {
 					position: relative;
-					padding-right: 2px;
+					padding-left: 5px;
 					color: $lime;
 					top: 3px;
 					font-size: 22px;
 				}
-			}
-			.favorite {
-				color: $yellow;
-				top: 12px;
-				right: 12px;
-				position: absolute;
-				display: none;
 			}
 			.description {
 				width: calc(100% - 30px);
@@ -521,44 +533,15 @@ html {
 	box-shadow: 0 2px 3px rgba(10, 10, 10, 0.3), 0 0 10px rgba(10, 10, 10, 0.3);
 	transition: all ease-in-out 0.2s;
 }
-
 @media screen and (max-width: 575px) {
 	.stationCard {
-		width: calc(100% - 20px);
-		height: auto;
-		.topContent {
-			.albumArt {
-				max-height: 100%;
-				max-width: 100px;
-				.albumArtBg {
-					background: url("/assets/notes-transparent.png") no-repeat
-						center center;
-					background-size: cover;
-					height: 100%;
-					width: 100%;
-					position: absolute;
-					top: 0;
-					filter: blur(5px);
-					display: inline-flex;
-				}
-				img {
-					height: auto;
-					width: 100%;
-					top: 0;
-					margin-top: auto;
-					margin-bottom: auto;
-					z-index: 1;
-				}
-			}
-			.info {
-				width: calc(100% - 100px);
-				max-width: none;
-				.displayName {
-					font-size: 18px !important;
-				}
-				.description {
-					font-size: 13px !important;
-				}
+		height: 485px;
+		.bottomBar {
+			height: 40px;
+			line-height: 40px;
+			i.material-icons,
+			.songTitle {
+				line-height: 40px;
 			}
 		}
 	}
