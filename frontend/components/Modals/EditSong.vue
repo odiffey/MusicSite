@@ -84,20 +84,24 @@
 										class="button album-get-button"
 										v-on:click="getAlbumData('title')"
 									>
-										<i class="material-icons album-get-icon"
-											>album</i
-										>
+										<i class="material-icons">album</i>
 									</button>
 								</p>
 							</div>
 							<div class="duration-container">
 								<label class="label">Duration</label>
-								<p class="control">
+								<p class="control has-addons">
 									<input
 										class="input"
 										type="text"
 										v-model.number="editing.song.duration"
 									/>
+									<button
+										class="button duration-fill-button"
+										v-on:click="fillDuration()"
+									>
+										<i class="material-icons">sync</i>
+									</button>
 								</p>
 							</div>
 							<div class="skip-duration-container">
@@ -126,9 +130,7 @@
 										class="button album-get-button"
 										v-on:click="getAlbumData('albumArt')"
 									>
-										<i class="material-icons album-get-icon"
-											>album</i
-										>
+										<i class="material-icons">album</i>
 									</button>
 								</p>
 							</div>
@@ -150,9 +152,7 @@
 										class="button album-get-button"
 										v-on:click="getAlbumData('artists')"
 									>
-										<i class="material-icons album-get-icon"
-											>album</i
-										>
+										<i class="material-icons">album</i>
 									</button>
 									<button
 										class="button is-info add-button"
@@ -226,9 +226,7 @@
 										class="button album-get-button"
 										v-on:click="getAlbumData('genres')"
 									>
-										<i class="material-icons album-get-icon"
-											>album</i
-										>
+										<i class="material-icons">album</i>
 									</button>
 									<button
 										class="button is-info add-button"
@@ -662,11 +660,6 @@ export default {
 					"Title must have between 1 and 100 characters.",
 					8000
 				);
-			/* if (!validation.regex.ascii.test(song.title))
-				return Toast.methods.addToast(
-					"Invalid title format. Only ascii characters are allowed.",
-					8000
-				); */
 
 			// Artists
 			if (song.artists.length < 1 || song.artists.length > 10)
@@ -676,13 +669,8 @@ export default {
 				);
 			let error;
 			song.artists.forEach(artist => {
-				if (!validation.isLength(artist, 1, 32)) {
-					error = "Artist must have between 1 and 32 characters.";
-					return error;
-				}
-				if (!validation.regex.ascii.test(artist)) {
-					error =
-						"Invalid artist format. Only ascii characters are allowed.";
+				if (!validation.isLength(artist, 1, 64)) {
+					error = "Artist must have between 1 and 64 characters.";
 					return error;
 				}
 				if (artist === "NONE") {
@@ -696,13 +684,13 @@ export default {
 			if (error) return Toast.methods.addToast(error, 8000);
 
 			// Genres
-			/* error = undefined;
+			error = undefined;
 			song.genres.forEach(genre => {
-				if (!validation.isLength(genre, 1, 16)) {
-					error = "Genre must have between 1 and 16 characters.";
+				if (!validation.isLength(genre, 1, 32)) {
+					error = "Genre must have between 1 and 32 characters.";
 					return error;
 				}
-				if (!validation.regex.azAZ09_.test(genre)) {
+				if (!validation.regex.ascii.test(genre)) {
 					error =
 						"Invalid genre format. Only ascii characters are allowed.";
 					return error;
@@ -710,10 +698,12 @@ export default {
 
 				return false;
 			});
-			if (error) return Toast.methods.addToast(error, 8000); */
+			if (song.genres.length < 1 || song.genres.length > 16)
+				error = "You must have between 1 and 16 genres.";
+			if (error) return Toast.methods.addToast(error, 8000);
 
 			// Thumbnail
-			if (!validation.isLength(song.thumbnail, 8, 256))
+			if (!validation.isLength(song.thumbnail, 1, 256))
 				return Toast.methods.addToast(
 					"Thumbnail must have between 8 and 256 characters.",
 					8000
@@ -792,6 +782,10 @@ export default {
 						apiResult.gotMoreInfo = true;
 					});
 			}
+		},
+		fillDuration() {
+			this.editing.song.duration =
+				this.youtubeVideoDuration - this.editing.song.skipDuration;
 		},
 		getAlbumData(type) {
 			if (!this.editing.song.discogs) return;
@@ -1152,8 +1146,8 @@ export default {
 
 		this.discogsQuery = this.editing.song.title;
 
-		lofig.get("cookie.secure", res => {
-			this.useHTTPS = res;
+		lofig.get("cookie.secure").then(useHTTPS => {
+			this.useHTTPS = useHTTPS;
 		});
 
 		io.getSocket(socket => {
@@ -1162,6 +1156,7 @@ export default {
 
 		this.interval = setInterval(() => {
 			if (
+				this.editing.song.duration !== -1 &&
 				this.video.paused === false &&
 				this.playerReady &&
 				this.video.player.getCurrentTime() -
@@ -1220,6 +1215,10 @@ export default {
 						let youtubeDuration = this.video.player.getDuration();
 						this.youtubeVideoDuration = youtubeDuration;
 						this.youtubeVideoNote = "";
+
+						if (this.editing.song.duration === -1)
+							this.editing.song.duration = youtubeDuration;
+
 						youtubeDuration -= this.editing.song.skipDuration;
 						if (this.editing.song.duration > youtubeDuration + 1) {
 							this.video.player.stopVideo();
@@ -1419,6 +1418,14 @@ export default {
 		.album-get-button {
 			background-color: $purple;
 			color: white;
+			width: 32px;
+			text-align: center;
+			border-width: 0;
+		}
+
+		.duration-fill-button {
+			background-color: $red;
+			color: $white;
 			width: 32px;
 			text-align: center;
 			border-width: 0;
