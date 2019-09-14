@@ -973,23 +973,48 @@ export default {
 		}
 
 		&.red {
-			background-color: $red;
+			&.current,
+			&:hover {
+				background-color: $red;
+			}
+			background-color: rgba($red, 0.7);
+			transition: all 0.3s ease-in-out;
 		}
 
 		&.green {
-			background-color: $green;
+			&.current,
+			&:hover {
+				background-color: $green;
+			}
+			background-color: rgba($green, 0.7);
+			transition: all 0.3s ease-in-out;
 		}
 
 		&.blue {
-			background-color: $musareBlue;
+			&.current,
+			&:hover {
+				background-color: $musareBlue;
+			}
+			background-color: rgba($musareBlue, 0.7);
+			transition: all 0.3s ease-in-out;
 		}
 
 		&.orange {
-			background-color: $light-orange;
+			&.current,
+			&:hover {
+				background-color: $light-orange;
+			}
+			background-color: rgba($light-orange, 0.7);
+			transition: all 0.3s ease-in-out;
 		}
 
 		&.yellow {
-			background-color: $yellow;
+			&.current,
+			&:hover {
+				background-color: $yellow;
+			}
+			background-color: rgba($yellow, 0.7);
+			transition: all 0.3s ease-in-out;
 		}
 
 		i {
