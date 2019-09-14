@@ -517,6 +517,8 @@ html {
 			line-height: 30px;
 			flex: 2 1 0;
 			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
 		}
 		.right {
 			float: right;
