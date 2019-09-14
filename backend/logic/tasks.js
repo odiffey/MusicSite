@@ -55,15 +55,13 @@ module.exports = class extends coreClass {
 		try { await this._validateHook(); } catch { return; }
 
 		if (task.timer) task.timer.pause();
-		
-		task.fn.apply(this, [
-			() => {
-				task.lastRan = Date.now();
-				task.timer = new this.utils.Timer(() => {
-					this.handleTask(task);
-				}, task.timeout, false);
-			}
-		]);
+
+		task.fn(() => {
+			task.lastRan = Date.now();
+			task.timer = new utils.Timer(() => {
+				this.handleTask(task);
+			}, task.timeout, false);
+		});
 	}
 
 	/*testTask(callback) {
@@ -76,6 +74,8 @@ module.exports = class extends coreClass {
 	}*/
 
 	async checkStationSkipTask(callback) {
+		try { await this._validateHook(); } catch { return; }
+
 		this.logger.info("TASK_STATIONS_SKIP_CHECK", `Checking for stations to be skipped.`, false);
 		async.waterfall([
 			(next) => {
@@ -101,6 +101,8 @@ module.exports = class extends coreClass {
 	}
 
 	async sessionClearingTask(callback) {
+		try { await this._validateHook(); } catch { return; }
+	
 		this.logger.info("TASK_SESSION_CLEAR", `Checking for sessions to be cleared.`, false);
 		async.waterfall([
 			(next) => {

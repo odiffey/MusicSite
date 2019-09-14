@@ -31,9 +31,9 @@ module.exports = class extends coreClass {
 			const SIDname = config.get("cookie.SIDname");
 
 			// TODO: Check every 30s/60s, for all sockets, if they are still allowed to be in the rooms they are in, and on socket at all (permission changing/banning)
-			this._io = socketio(app.server);
+			this.io = socketio(app.server);
 
-			this._io.use(async (socket, next) => {
+			this.io.use(async (socket, next) => {
 				try { await this._validateHook(); } catch { return; }
 
 				let SID;
@@ -95,7 +95,7 @@ module.exports = class extends coreClass {
 				});
 			});
 
-			this._io.on('connection', async socket => {
+			this.io.on('connection', async socket => {
 				try { await this._validateHook(); } catch { return; }
 
 				let sessionInfo = '';
@@ -185,10 +185,5 @@ module.exports = class extends coreClass {
 
 			resolve();
 		});
-	}
-
-	async io () {
-		try { await this._validateHook(); } catch { return; }
-		return this._io;
 	}
 }

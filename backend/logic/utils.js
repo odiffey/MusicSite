@@ -172,8 +172,7 @@ module.exports = class extends coreClass {
 	async socketFromSession(socketId) {
 		try { await this._validateHook(); } catch { return; }
 
-		let io = await this.io.io();
-		let ns = io.of("/");
+		let ns = this.io.io.of("/");
 		if (ns) {
 			return ns.connected[socketId];
 		}
@@ -182,8 +181,7 @@ module.exports = class extends coreClass {
 	async socketsFromSessionId(sessionId, cb) {
 		try { await this._validateHook(); } catch { return; }
 
-		let io = await this.io.io();
-		let ns = io.of("/");
+		let ns = this.io.io.of("/");
 		let sockets = [];
 		if (ns) {
 			async.each(Object.keys(ns.connected), (id, next) => {
@@ -199,8 +197,7 @@ module.exports = class extends coreClass {
 	async socketsFromUser(userId, cb) {
 		try { await this._validateHook(); } catch { return; }
 
-		let io = await this.io.io();
-		let ns = io.of("/");
+		let ns = this.io.io.of("/");
 		let sockets = [];
 		if (ns) {
 			async.each(Object.keys(ns.connected), (id, next) => {
@@ -218,8 +215,7 @@ module.exports = class extends coreClass {
 	async socketsFromIP(ip, cb) {
 		try { await this._validateHook(); } catch { return; }
 
-		let io = await this.io.io();
-		let ns = io.of("/");
+		let ns = this.io.io.of("/");
 		let sockets = [];
 		if (ns) {
 			async.each(Object.keys(ns.connected), (id, next) => {
@@ -237,8 +233,7 @@ module.exports = class extends coreClass {
 	async socketsFromUserWithoutCache(userId, cb) {
 		try { await this._validateHook(); } catch { return; }
 
-		let io = await this.io.io();
-		let ns = io.of("/");
+		let ns = this.io.io.of("/");
 		let sockets = [];
 		if (ns) {
 			async.each(Object.keys(ns.connected), (id, next) => {
@@ -311,8 +306,7 @@ module.exports = class extends coreClass {
 	async emitToRoom(room, ...args) {
 		try { await this._validateHook(); } catch { return; }
 
-		let io = await this.io.io();
-		let sockets = io.sockets.sockets;
+		let sockets = this.io.io.sockets.sockets;
 		for (let id in sockets) {
 			let socket = sockets[id];
 			if (socket.rooms[room]) {
@@ -324,8 +318,7 @@ module.exports = class extends coreClass {
 	async getRoomSockets(room) {
 		try { await this._validateHook(); } catch { return; }
 
-		let io = await this.io.io();
-		let sockets = io.sockets.sockets;
+		let sockets = this.io.io.sockets.sockets;
 		let roomSockets = [];
 		for (let id in sockets) {
 			let socket = sockets[id];
