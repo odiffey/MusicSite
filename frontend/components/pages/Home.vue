@@ -132,7 +132,12 @@
 							</div>
 						</div>
 						<div class="bottomBar">
-							<i class="material-icons">music_note</i>
+							<i
+								v-if="station.currentSong.title"
+								class="material-icons"
+								>music_note</i
+							>
+							<i v-else class="material-icons">music_off</i>
 							<span
 								v-if="station.currentSong.title"
 								class="songTitle"
