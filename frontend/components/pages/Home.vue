@@ -257,7 +257,8 @@ export default {
 				this.favoriteStations.push(stationId);
 			});
 			this.socket.on("event:user.unfavoritedStation", stationId => {
-				this.favoriteStations.$remove(stationId);
+				const station = this.favoriteStations.indexOf(stationId);
+				this.favoriteStations.splice(station, 1);
 			});
 		});
 	},
