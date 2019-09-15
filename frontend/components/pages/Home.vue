@@ -141,12 +141,22 @@
 							<span
 								v-if="station.currentSong.title"
 								class="songTitle"
+								:title="
+									'Now Playing: ' + station.currentSong.title
+								"
 								>{{ station.currentSong.title }}</span
 							>
 							<span v-else class="songTitle"
 								>No Songs Playing</span
 							>
-							<div class="right">
+							<div
+								class="right"
+								:title="
+									'There are currently ' +
+										station.userCount +
+										' users listening'
+								"
+							>
 								<i class="material-icons">people</i>
 								<span class="currentUsers">{{
 									station.userCount
