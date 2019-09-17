@@ -117,6 +117,11 @@ export default {
 @import "scss/global.scss";
 #toasts-container {
 	z-index: 10000 !important;
+	height: auto !important;
+	top: unset !important;
+	bottom: 20px;
+	left: unset !important;
+	right: 20px;
 }
 
 .toast:not(:first-of-type) {
