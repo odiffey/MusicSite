@@ -2,23 +2,19 @@
   
 # MusareNode
 
-Staging: [![Build Status](https://travis-ci.org/odiffey/MusareNode.svg?branch=staging)](https://travis-ci.org/odiffey/MusareNode)
+Staging: [![Build Status](https://travis-ci.org/odiffey/MusicSite.svg?branch=staging)](https://travis-ci.org/odiffey/MusicSite)
 
-Experimental: [![Build Status](https://travis-ci.org/odiffey/MusareNode.svg?branch=experimental)](https://travis-ci.org/odiffey/MusareNode)
+Experimental: [![Build Status](https://travis-ci.org/odiffey/MusicSite.svg?branch=experimental)](https://travis-ci.org/odiffey/MusicSite)
 
-Based off of the original [Musare](https://github.com/Musare/MusareMeteor), which utilized Meteor.
+Built off of [Musare](https://github.com/Musare/MusareNode).
 
 MusareNode now uses NodeJS, Express, SocketIO and VueJS - among other technologies. We have also implemented the ability to host Musare in [Docker Containers](https://www.docker.com/).
 
-The master branch is available at [musare.com](https://musare.com)
-
-You can also find the staging branch at [musare.dev](https://musare.dev)
+A live version of the site can be found at [music.diffey.dev](https://music.diffey.dev)
 
 ## Contact
 
-Get in touch with us via email at [core@musare.com](mailto:core@musare.com) or join our [Discord Guild](https://discord.gg/Y5NxYGP).
-
-You can also find us on [Facebook](https://www.facebook.com/MusareMusic) and [Twitter](https://twitter.com/MusareApp).
+Get in touch with me via email at [owen@diffey.dev](mailto:owen@diffey.dev) or [Twitter](https://twitter.com/odiffeyuk).
 
 ### Our Stack
 
