@@ -6,7 +6,7 @@ Staging: [![Build Status](https://travis-ci.org/odiffey/MusicSite.svg?branch=sta
 
 Experimental: [![Build Status](https://travis-ci.org/odiffey/MusicSite.svg?branch=experimental)](https://travis-ci.org/odiffey/MusicSite)
 
-Built off of [MusicSite](https://github.com/MusicSite/MusicSite).
+Built off of [MusareNode](https://github.com/Musare/MusareNode).
 
 MusicSite now uses NodeJS, Express, SocketIO and VueJS - among other technologies. We have also implemented the ability to host MusicSite in [Docker Containers](https://www.docker.com/).
 
