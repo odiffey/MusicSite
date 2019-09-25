@@ -1,18 +1,22 @@
 @import 'variables/colors.scss';
+@import 'variables/fonts.scss';
 
 html {
 	overflow: auto !important;
+	color: $dark-grey;
 }
 
-body {
-	background-color: $light-grey;
-	color: $dark-grey;
-	font-family: "Roboto", Helvetica, Arial, sans-serif;
+body, button, input, select, textarea {
+    font-family: $nunitoFont;
 }
 
 a {
 	color: $primary-color;
 	text-decoration: none;
+}
+
+.app {
+	background-color: $light-grey;
 }
 
 .modal-card {
