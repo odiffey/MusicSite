@@ -275,6 +275,55 @@
 						</button>
 					</div>
 				</div>
+				<div>
+					<label class="label">Theme</label>
+					<div
+						@mouseenter="themeDropdownActive = true"
+						@mouseleave="themeDropdownActive = false"
+						class="button-wrapper"
+					>
+						<button
+							v-bind:class="{
+								blue: true,
+								current: editing.theme === 'blue'
+							}"
+							v-if="
+								themeDropdownActive || editing.theme === 'blue'
+							"
+							@click="updateThemeLocal('blue')"
+						>
+							<i class="material-icons">palette</i>
+							Blue
+						</button>
+						<button
+							v-bind:class="{
+								purple: true,
+								current: editing.theme === 'purple'
+							}"
+							v-if="
+								themeDropdownActive ||
+									editing.theme === 'purple'
+							"
+							@click="updateThemeLocal('purple')"
+						>
+							<i class="material-icons">palette</i>
+							Purple
+						</button>
+						<button
+							v-bind:class="{
+								teal: true,
+								current: editing.theme === 'teal'
+							}"
+							v-if="
+								themeDropdownActive || editing.theme === 'teal'
+							"
+							@click="updateThemeLocal('teal')"
+						>
+							<i class="material-icons">palette</i>
+							Teal
+						</button>
+					</div>
+				</div>
 			</div>
 		</template>
 		<template v-slot:footer>
@@ -332,6 +381,7 @@ export default {
 			privacyDropdownActive: false,
 			modeDropdownActive: false,
 			queueLockDropdownActive: false,
+			themeDropdownActive: false,
 			genres: [
 				"Blues",
 				"Country",
@@ -376,6 +426,7 @@ export default {
 				this.updateDescription();
 			if (this.station.privacy !== this.editing.privacy)
 				this.updatePrivacy();
+			if (this.station.theme !== this.editing.theme) this.updateTheme();
 			if (
 				this.station.type === "community" &&
 				this.station.partyMode !== this.editing.partyMode
@@ -683,6 +734,42 @@ export default {
 					timeout: 8000
 				});
 			});
+		},
+		updateThemeLocal(theme) {
+			if (this.editing.theme === theme) return;
+			this.editing.theme = theme;
+			this.themeDropdownActive = false;
+		},
+		updateTheme() {
+			this.socket.emit(
+				"stations.updateTheme",
+				this.editing._id,
+				this.editing.theme,
+				res => {
+					if (res.status === "success") {
+						if (this.station)
+							this.station.theme = this.editing.theme;
+						else {
+							this.$parent.stations.forEach((station, index) => {
+								if (station._id === this.editing._id) {
+									this.$parent.stations[
+										index
+									].theme = this.editing.theme;
+									return this.editing.theme;
+								}
+
+								return false;
+							});
+						}
+						return new Toast({
+							content: res.message,
+							timeout: 4000
+						});
+					}
+
+					return new Toast({ content: res.message, timeout: 8000 });
+				}
+			);
 		},
 		deleteStation() {
 			this.socket.emit("stations.remove", this.editing._id, res => {
@@ -1019,6 +1106,15 @@ export default {
 			transition: all 0.3s ease-in-out;
 		}
 
+		&.teal {
+			&.current,
+			&:hover {
+				background-color: $teal;
+			}
+			background-color: rgba($teal, 0.7);
+			transition: all 0.3s ease-in-out;
+		}
+
 		&.blue {
 			&.current,
 			&:hover {
@@ -1034,6 +1130,15 @@ export default {
 				background-color: $light-orange;
 			}
 			background-color: rgba($light-orange, 0.7);
+			transition: all 0.3s ease-in-out;
+		}
+
+		&.purple {
+			&.current,
+			&:hover {
+				background-color: $purple;
+			}
+			background-color: rgba($purple, 0.7);
 			transition: all 0.3s ease-in-out;
 		}
 

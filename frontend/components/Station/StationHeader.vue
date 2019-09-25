@@ -260,7 +260,8 @@ export default {
 				description: this.station.description,
 				privacy: this.station.privacy,
 				displayName: this.station.displayName,
-				locked: this.station.locked
+				locked: this.station.locked,
+				theme: this.station.theme
 			});
 			this.openModal({
 				sector: "station",

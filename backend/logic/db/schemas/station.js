@@ -39,5 +39,6 @@ module.exports = {
 	}],
 	owner: { type: String },
 	privatePlaylist: { type: mongoose.Schema.Types.ObjectId },
-	partyMode: { type: Boolean }
+	partyMode: { type: Boolean },
+	theme: { type: String, enum: ["blue", "purple", "teal"], default: "blue" }
 };

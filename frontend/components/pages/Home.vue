@@ -29,7 +29,12 @@
 							name: 'station',
 							params: { id: station.name }
 						}"
-						class="stationCard"
+						:class="{
+							stationCard: true,
+							blueTheme: station.theme === 'blue',
+							purpleTheme: station.theme === 'purple',
+							tealTheme: station.theme === 'teal'
+						}"
 					>
 						<div class="topContent">
 							<div class="albumArt">
@@ -90,8 +95,9 @@
 									<i
 										v-if="station.type === 'official'"
 										class="badge material-icons"
+										title="Official Station"
 									>
-										verified_user
+										check_circle
 									</i>
 								</div>
 								<p class="description">
@@ -462,9 +468,9 @@ html {
 				.badge {
 					position: relative;
 					padding-left: 5px;
-					color: $lime;
-					top: 3px;
-					font-size: 22px;
+					color: $primary-color;
+					top: 5px;
+					font-size: 18px;
 				}
 			}
 			.description {
@@ -544,6 +550,32 @@ html {
 				margin-left: 5px;
 				font-size: 14px;
 			}
+		}
+	}
+	&.purpleTheme {
+		.topContent .info {
+			.hostedBy .host,
+			.hostedBy .host a,
+			.displayName .badge {
+				color: $purple;
+			}
+		}
+		.bottomBar {
+			background: $purple;
+			box-shadow: inset 0px 2px 4px rgba(103, 12, 100, 0.7);
+		}
+	}
+	&.tealTheme {
+		.topContent .info {
+			.hostedBy .host,
+			.hostedBy .host a,
+			.displayName .badge {
+				color: $teal;
+			}
+		}
+		.bottomBar {
+			background: $teal;
+			box-shadow: inset 0px 2px 4px rgba(20, 160, 122, 0.7);
 		}
 	}
 }

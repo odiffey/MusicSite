@@ -359,7 +359,8 @@ module.exports = {
 					locked: station.locked,
 					partyMode: station.partyMode,
 					owner: station.owner,
-					privatePlaylist: station.privatePlaylist
+					privatePlaylist: station.privatePlaylist,
+					theme: station.theme
 				};
 				userList[session.socketId] = station._id;
 				next(null, data);
@@ -879,7 +880,8 @@ module.exports = {
 							playlist,
 							genres,
 							blacklistedGenres,
-							currentSong: stations.defaultSong
+							currentSong: stations.defaultSong,
+							theme: 'blue'
 						}, next);
 					});
 				} else if (type === 'community') {
@@ -892,7 +894,8 @@ module.exports = {
 						privacy: 'private',
 						owner: session.userId,
 						queue: [],
-						currentSong: null
+						currentSong: null,
+						theme: 'blue'
 					}, next);
 				}
 			}
@@ -1213,6 +1216,34 @@ module.exports = {
 			logger.success("UNFAVORITE_STATION", `Unfavorited station "${stationId}" successfully.`);
 			cache.pub('user.unfavoritedStation', { userId: session.userId, stationId });
 			return cb({'status': 'success', 'message': 'Succesfully unfavorited station.'});
+		});
+	}),
+
+	/**
+	 * Updates a station's theme
+	 *
+	 * @param session
+	 * @param stationId - the station id
+	 * @param newTheme - the new station theme
+	 * @param cb
+	 */
+	updateTheme: hooks.ownerRequired((session, stationId, newTheme, cb) => {
+		async.waterfall([
+			(next) => {
+				db.models.station.updateOne({_id: stationId}, {$set: {theme: newTheme}}, {runValidators: true}, next);
+			},
+
+			(res, next) => {
+				stations.updateStation(stationId, next);
+			}
+		], async (err) => {
+			if (err) {
+				err = await utils.getError(err);
+				logger.error("STATIONS_UPDATE_THEME", `Updating station "${stationId}" theme to "${newTheme}" failed. "${err}"`);
+				return cb({'status': 'failure', 'message': err});
+			}
+			logger.success("STATIONS_UPDATE_THEME", `Updated station "${stationId}" theme to "${newTheme}" successfully.`);
+			return cb({'status': 'success', 'message': 'Successfully updated the theme.'});
 		});
 	}),
 };

@@ -1,14 +1,14 @@
 
   
-# MusareNode
+# MusicSite
 
 Staging: [![Build Status](https://travis-ci.org/odiffey/MusicSite.svg?branch=staging)](https://travis-ci.org/odiffey/MusicSite)
 
 Experimental: [![Build Status](https://travis-ci.org/odiffey/MusicSite.svg?branch=experimental)](https://travis-ci.org/odiffey/MusicSite)
 
-Built off of [Musare](https://github.com/Musare/MusareNode).
+Built off of [MusicSite](https://github.com/MusicSite/MusicSite).
 
-MusareNode now uses NodeJS, Express, SocketIO and VueJS - among other technologies. We have also implemented the ability to host Musare in [Docker Containers](https://www.docker.com/).
+MusicSite now uses NodeJS, Express, SocketIO and VueJS - among other technologies. We have also implemented the ability to host MusicSite in [Docker Containers](https://www.docker.com/).
 
 A live version of the site can be found at [music.diffey.dev](https://music.diffey.dev)
 
@@ -52,9 +52,9 @@ Standard Installation:
 
 Once you've installed the required tools:
 
-1. `git clone https://github.com/Musare/MusareNode.git`
+1. `git clone https://github.com/odiffey/MusicSiteSite.git`
 
-2. `cd MusareNode`
+2. `cd MusicSite`
 
 3. `cp backend/config/template.json backend/config/default.json`
 
@@ -78,7 +78,7 @@ Once you've installed the required tools:
 |`apis.discogs`|Can be obtained by setting up a [Discogs application](https://www.discogs.com/settings/developers), or you can disable it.|
 |`redis.url`|Should be left alone for Docker, and changed to `redis://localhost:6379/0` for non-Docker.|
 |`redis.password`|Should be the Redis password you either put in your `startRedis.cmd` file for Windows, or `.env` for docker.|
-|`mongo.url`|Needs to have the proper password for the MongoDB musare user, and for non-Docker you need to replace `@musare:27017` with `@localhost:27017`.|
+|`mongo.url`|Needs to have the proper password for the MongoDB music user, and for non-Docker you need to replace `@music:27017` with `@localhost:27017`.|
 |`cookie.domain`|Should be the ip or address you use to access the site, without protocols (http/https), so for example `localhost`.|
 |`cookie.secure`|Should be `true` for SSL connections, and `false` for normal http connections.|
 
@@ -94,7 +94,7 @@ Once you've installed the required tools:
 |`cookie.secure`|Should be `true` for SSL connections, and `false` for normal http connections.|
 |`siteSettings.logo`|Path to the logo image, by default it is `/assets/wordmark.png`.|
 |`siteSettings.siteName`|Should be the name of the site.|
-|`siteSettings.socialLinks`|`github`, `twitter` and `facebook` are set to the official Musare accounts by default, but can be changed.|
+|`siteSettings.socialLinks`|`github`, `twitter` and `facebook` are set to # by default, but can be changed.|
 
 5. Simply `cp .env.example .env` to setup your environment variables.
 
@@ -111,7 +111,7 @@ _Configuration_
 
 To configure docker configure the `.env` file to match your settings in `backend/config/default.json`.  
 The configurable ports will be how you access the services on your machine, or what ports you will need to specify in your nginx files when using proxy_pass. 
-`COMPOSE_PROJECT_NAME` should be a unique name for this installation, especially if you have multiple instances of Musare on the same machine.
+`COMPOSE_PROJECT_NAME` should be a unique name for this installation, especially if you have multiple instances of MusicSite on the same machine.
 `FRONTEND_MODE` should be either `dev` or `prod` (self-explanatory).
 
 1. Build the backend and frontend Docker images (from the main folder)
@@ -124,7 +124,7 @@ The configurable ports will be how you access the services on your machine, or w
 
       In `.env` set the environment variable of `MONGO_ROOT_PASSWORD`.
 
-   2. Set the password for the musare user (the one the backend will use).
+   2. Set the password for the music user (the one the backend will use).
 
       In `.env` set the environment variable of `MONGO_USER_USERNAME` and `MONGO_USER_PASSWORD`.
 
@@ -143,7 +143,7 @@ The configurable ports will be how you access the services on your machine, or w
 
 5) You should now be able to begin development! The backend is auto reloaded when
    you make changes and the frontend is auto compiled and live reloaded by webpack
-   when you make changes. You should be able to access Musare in your local browser
+   when you make changes. You should be able to access MusicSite in your local browser
    at `http://<docker-machine-ip>:8080/` where `<docker-machine-ip>` can be found below:
 
    - Docker for Windows / Mac: This is just `localhost`
@@ -164,7 +164,7 @@ Steps 1-4 are things you only have to do once. The steps to start servers follow
 
 2.  Create a file called `startMongo.cmd` in the main folder with the contents:
 
-        "C:\Program Files\MongoDB\Server\3.2\bin\mongod.exe" --dbpath "D:\Programming\HTML\MusareNode\.database"
+        "C:\Program Files\MongoDB\Server\3.2\bin\mongod.exe" --dbpath "D:\Programming\HTML\MusicSite\.database"
 
     Make sure to adjust your paths accordingly.
 
@@ -180,13 +180,13 @@ Steps 1-4 are things you only have to do once. The steps to start servers follow
 
        `db.createUser({user: 'admin', pwd: 'PASSWORD_HERE', roles: [{role: 'userAdminAnyDatabase', db: 'admin'}]})`
 
-    4. Connect to the Musare database
+    4. Connect to the MusicSite database
 
-       `use musare`
+       `use music`
 
-    5. Create the musare user
+    5. Create the music user
 
-       `db.createUser({user: 'musare', pwd: 'OTHER_PASSWORD_HERE', roles: [{role: 'readWrite', db: 'musare'}]})`
+       `db.createUser({user: 'music', pwd: 'OTHER_PASSWORD_HERE', roles: [{role: 'readWrite', db: 'music'}]})`
 
     6. Exit
 
@@ -220,7 +220,7 @@ Steps 1-4 are things you only have to do once. The steps to start servers follow
 
 ## Extra
 
-Below is a list of helpful tips / solutions we've collected while developing MusareNode.
+Below is a list of helpful tips / solutions we've collected while developing MusicSite.
 
 ### Mounting a non-standard directory in Docker Toolbox on Windows
 
@@ -235,7 +235,7 @@ of the following commands to give Docker Toolbox access to those files.
 
 1. Next we'll want to tell the machine about the folder we want to share.
 
-   `"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" sharedfolder add default --name "d/Projects/MusareNode" --hostpath "D:\Projects\MusareNode" --automount`
+   `"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" sharedfolder add default --name "d/Projects/MusicSite" --hostpath "D:\Projects\MusicSite" --automount`
 
 1. Now start the machine back up and ssh into it
 
@@ -246,8 +246,8 @@ of the following commands to give Docker Toolbox access to those files.
    ```bash
    sudo tee -a /mnt/sda1/var/lib/boot2docker/profile >/dev/null <<EOF
 
-   mkdir -p /d/Projects/MusareNode
-   mount -t vboxsf -o uid=1000,gid=50 d/Projects/MusareNode /d/Projects/MusareNode
+   mkdir -p /d/Projects/MusicSite
+   mount -t vboxsf -o uid=1000,gid=50 d/Projects/MusicSite /d/Projects/MusicSite
    EOF
    ```
 
@@ -265,7 +265,7 @@ This command will print various variables.
 At the bottom, it will say something similar to `@FOR /f "tokens=*" %i IN ('docker-machine env default') DO @%i`.
 Run this command in your shell. You will have to do this command for every shell you want to run `docker-compose` in (every session).
 
-### Running Musare locally without using Docker
+### Running MusicSite locally without using Docker
 
 1. Install [Redis](http://redis.io/download) and [MongoDB](https://www.mongodb.com/download-center#community)
 
@@ -301,7 +301,7 @@ When setting up you will need to grant yourself the admin role, using the follow
 ```
 docker-compose exec mongo mongo admin
 
-use musare
+use music
 db.auth("MUSAREDBUSER","MUSAREDBPASSWORD")
 db.users.update({username: "USERNAME"}, {$set: {role: "admin"}})
 ```
@@ -312,5 +312,5 @@ We use lerna to add an additional package to either the frontend or the backend.
 
 For example, this is how we would to add the `webpack-bundle-analyser` package as a dev-dependency to the frontend:
 ```
-npx lerna add webpack-bundle-analyser --scope=musare-frontend --dev
+npx lerna add webpack-bundle-analyser --scope=music-frontend --dev
 ```

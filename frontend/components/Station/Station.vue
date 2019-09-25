@@ -999,7 +999,8 @@ export default {
 						partyMode,
 						owner,
 						privatePlaylist,
-						type
+						type,
+						theme
 					} = res.data;
 
 					this.joinStation({
@@ -1012,7 +1013,8 @@ export default {
 						partyMode,
 						owner,
 						privatePlaylist,
-						type
+						type,
+						theme
 					});
 					const currentSong = res.data.currentSong
 						? res.data.currentSong
