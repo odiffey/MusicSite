@@ -322,6 +322,19 @@
 							<i class="material-icons">palette</i>
 							Teal
 						</button>
+						<button
+							v-bind:class="{
+								dark: true,
+								current: editing.theme === 'dark'
+							}"
+							v-if="
+								themeDropdownActive || editing.theme === 'dark'
+							"
+							@click="updateThemeLocal('dark')"
+						>
+							<i class="material-icons">palette</i>
+							Dark
+						</button>
 					</div>
 				</div>
 			</div>
@@ -1136,9 +1149,9 @@ export default {
 		&.purple {
 			&.current,
 			&:hover {
-				background-color: $purple;
+				background-color: $light-purple;
 			}
-			background-color: rgba($purple, 0.7);
+			background-color: rgba($light-purple, 0.7);
 			transition: all 0.3s ease-in-out;
 		}
 
@@ -1148,6 +1161,15 @@ export default {
 				background-color: $yellow;
 			}
 			background-color: rgba($yellow, 0.7);
+			transition: all 0.3s ease-in-out;
+		}
+
+		&.dark {
+			&.current,
+			&:hover {
+				background-color: $dark-grey;
+			}
+			background-color: rgba($dark-grey, 0.7);
 			transition: all 0.3s ease-in-out;
 		}
 

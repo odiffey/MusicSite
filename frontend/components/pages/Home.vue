@@ -33,7 +33,8 @@
 							stationCard: true,
 							blueTheme: station.theme === 'blue',
 							purpleTheme: station.theme === 'purple',
-							tealTheme: station.theme === 'teal'
+							tealTheme: station.theme === 'teal',
+							darkTheme: station.theme === 'dark'
 						}"
 					>
 						<div class="topContent">
@@ -529,7 +530,7 @@ html {
 	.bottomBar {
 		display: inline-flex;
 		background: $primary-color;
-		box-shadow: inset 0px 2px 4px rgba(7, 136, 191, 0.6);
+		box-shadow: inset 0px 2px 4px rgba(darken($primary-color, 7), 0.7);
 		width: 100%;
 		height: 30px;
 		line-height: 30px;
@@ -561,30 +562,69 @@ html {
 			}
 		}
 	}
+	&.blueTheme {
+		.topContent .info {
+			.hostedBy .host,
+			.hostedBy .host a,
+			.displayName .badge,
+			.bottomIcons .homeIcon {
+				color: $musareBlue;
+			}
+		}
+		.bottomBar {
+			background: $musareBlue;
+			box-shadow: inset 0px 2px 4px rgba(darken($musareBlue, 7), 0.7);
+		}
+	}
 	&.purpleTheme {
 		.topContent .info {
 			.hostedBy .host,
 			.hostedBy .host a,
-			.displayName .badge {
-				color: $purple;
+			.displayName .badge,
+			.bottomIcons .homeIcon {
+				color: $light-purple;
 			}
 		}
 		.bottomBar {
-			background: $purple;
-			box-shadow: inset 0px 2px 4px rgba(103, 12, 100, 0.7);
+			background: $light-purple;
+			box-shadow: inset 0px 2px 4px rgba(darken($light-purple, 7), 0.7);
 		}
 	}
 	&.tealTheme {
 		.topContent .info {
 			.hostedBy .host,
 			.hostedBy .host a,
-			.displayName .badge {
+			.displayName .badge,
+			.bottomIcons .homeIcon {
 				color: $teal;
 			}
 		}
 		.bottomBar {
 			background: $teal;
-			box-shadow: inset 0px 2px 4px rgba(20, 160, 122, 0.7);
+			box-shadow: inset 0px 2px 4px rgba(darken($teal, 7), 0.7);
+		}
+	}
+	&.darkTheme {
+		background: $dark-grey;
+		color: $light-grey;
+		.albumArt {
+			box-shadow: 1px 0px 3px rgba($dark-grey-3, 0.3);
+		}
+		.topContent .info {
+			.hostedBy .host,
+			.hostedBy .host a,
+			.displayName,
+			.displayName .badge,
+			.bottomIcons .homeIcon {
+				color: $light-grey;
+			}
+			.hostedBy {
+				color: $light-grey-2;
+			}
+		}
+		.bottomBar {
+			background: $dark-grey-2;
+			box-shadow: inset 0px 2px 4px rgba(darken($dark-grey, 7), 0.7);
 		}
 	}
 }

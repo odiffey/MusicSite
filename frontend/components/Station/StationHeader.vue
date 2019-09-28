@@ -492,4 +492,89 @@ a.nav-item.is-tab:hover {
 	opacity: 1;
 	display: block;
 }
+
+.purpleTheme {
+	.nav {
+		background-color: $light-purple;
+		.is-brand img {
+			color: $light-purple;
+		}
+		.nav-right.is-active .nav-item {
+			background: $light-purple;
+		}
+	}
+	.control-sidebar {
+		background-color: $light-purple;
+		.sidebar-item .icon-purpose {
+			background-color: rgba($light-purple, 0.8);
+			&::after {
+				border-color: transparent rgba($light-purple, 0.8) transparent
+					transparent;
+			}
+		}
+	}
+}
+.tealTheme {
+	.nav {
+		background-color: $teal;
+		.is-brand img {
+			color: $teal;
+		}
+		.nav-right.is-active .nav-item {
+			background: $teal;
+		}
+	}
+	.control-sidebar {
+		background-color: $teal;
+		.sidebar-item .icon-purpose {
+			background-color: rgba($teal, 0.8);
+			&::after {
+				border-color: transparent rgba($teal, 0.8) transparent
+					transparent;
+			}
+		}
+	}
+}
+.blueTheme {
+	.nav {
+		background-color: $musareBlue;
+		.is-brand img {
+			color: $musareBlue;
+		}
+		.nav-right.is-active .nav-item {
+			background: $musareBlue;
+		}
+	}
+	.control-sidebar {
+		background-color: $musareBlue;
+		.sidebar-item .icon-purpose {
+			background-color: rgba($musareBlue, 0.8);
+			&::after {
+				border-color: transparent rgba($musareBlue, 0.8) transparent
+					transparent;
+			}
+		}
+	}
+}
+.darkTheme {
+	.nav {
+		background-color: $dark-grey-3;
+		.is-brand img {
+			color: $light-grey-2;
+		}
+		.nav-right.is-active .nav-item {
+			background: $dark-grey-3;
+		}
+	}
+	.control-sidebar {
+		background-color: $dark-grey-3;
+		.sidebar-item .icon-purpose {
+			background-color: rgba($dark-grey-3, 0.8);
+			&::after {
+				border-color: transparent rgba($dark-grey-3, 0.8) transparent
+					transparent;
+			}
+		}
+	}
+}
 </style>

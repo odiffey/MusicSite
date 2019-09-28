@@ -1,5 +1,12 @@
 <template>
-	<div>
+	<div
+		:class="{
+			blueTheme: station.theme === 'blue',
+			purpleTheme: station.theme === 'purple',
+			tealTheme: station.theme === 'teal',
+			darkTheme: station.theme === 'dark'
+		}"
+	>
 		<metadata
 			v-if="exists && !loading"
 			v-bind:title="`${station.displayName}`"
@@ -98,7 +105,7 @@
 						id="preview-progress"
 						class="seeker-bar-container white"
 					>
-						<div class="seeker-bar light-blue" style="width: 0%;" />
+						<div class="seeker-bar" style="width: 0%;" />
 					</div>
 				</div>
 				<div
@@ -1363,7 +1370,7 @@ export default {
 		0 2px 10px 0 rgba(0, 0, 0, 0.12);
 	.slideout-header {
 		text-align: center;
-		background-color: rgb(3, 169, 244) !important;
+		background-color: $primary-color !important;
 		margin: 0;
 		padding-top: 5px;
 		padding-bottom: 7px;
@@ -1386,6 +1393,7 @@ export default {
 	margin: 0 auto;
 	max-width: 100%;
 	width: 90%;
+	min-height: calc(100vh - 66px);
 
 	@media only screen and (min-width: 993px) {
 		width: 70%;
@@ -1647,6 +1655,7 @@ export default {
 	left: 0;
 	bottom: 0;
 	position: absolute;
+	background-color: $musareBlue;
 }
 
 ul {
@@ -1794,5 +1803,124 @@ h6 {
 
 .experimental {
 	display: none !important;
+}
+
+.purpleTheme {
+	.slideout .slideout-header,
+	.sidebar .title,
+	.seeker-bar,
+	.add-to-queue,
+	.add-to-playlist,
+	.create-playlist {
+		background-color: $light-purple !important;
+	}
+	.player-can-not-autoplay {
+		background: rgba($light-purple, 0.95);
+	}
+	.no-song {
+		color: $light-purple;
+	}
+	.station input[type="range"] {
+		&::-webkit-slider-thumb {
+			background: $light-purple !important;
+		}
+		&::-moz-range-thumb {
+			background: $light-purple !important;
+		}
+		&::-ms-thumb {
+			background: $light-purple !important;
+		}
+	}
+}
+.tealTheme {
+	.slideout .slideout-header,
+	.sidebar .title,
+	.seeker-bar,
+	.add-to-queue,
+	.add-to-playlist,
+	.create-playlist {
+		background-color: $teal !important;
+	}
+	.player-can-not-autoplay {
+		background: rgba($teal, 0.95);
+	}
+	.no-song {
+		color: $teal;
+	}
+	.station input[type="range"] {
+		&::-webkit-slider-thumb {
+			background: $teal !important;
+		}
+		&::-moz-range-thumb {
+			background: $teal !important;
+		}
+		&::-ms-thumb {
+			background: $teal !important;
+		}
+	}
+}
+.blueTheme {
+	.slideout .slideout-header,
+	.sidebar .title,
+	.seeker-bar,
+	.add-to-queue,
+	.add-to-playlist,
+	.create-playlist {
+		background-color: $musareBlue !important;
+	}
+	.player-can-not-autoplay {
+		background: rgba($musareBlue, 0.95);
+	}
+	.no-song {
+		color: $musareBlue;
+	}
+	.station input[type="range"] {
+		&::-webkit-slider-thumb {
+			background: $musareBlue !important;
+		}
+		&::-moz-range-thumb {
+			background: $musareBlue !important;
+		}
+		&::-ms-thumb {
+			background: $musareBlue !important;
+		}
+	}
+}
+.darkTheme {
+	background: $dark-grey;
+	color: $light-grey;
+	.seeker-bar,
+	.add-to-queue,
+	.add-to-playlist,
+	.create-playlist {
+		background-color: $dark-grey-2 !important;
+	}
+	.sidebar,
+	.slideout {
+		background-color: $dark-grey !important;
+		.slideout-header,
+		.title {
+			background-color: $dark-grey-2 !important;
+		}
+	}
+	.player-can-not-autoplay {
+		background: rgba($dark-grey-3, 0.95);
+	}
+	.no-song,
+	.content,
+	strong {
+		color: $light-grey;
+	}
+	.station input[type="range"] {
+		&::-webkit-slider-thumb {
+			background: $dark-grey-3 !important;
+		}
+		&::-moz-range-thumb {
+			background: $dark-grey-3 !important;
+		}
+		&::-ms-thumb {
+			background: $dark-grey-3 !important;
+		}
+	}
 }
 </style>
