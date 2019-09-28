@@ -120,9 +120,15 @@
 								</p>
 								<div class="bottomIcons">
 									<i
-										v-if="station.privacy !== 'public'"
+										v-if="station.privacy === 'unlisted'"
+										class="unlistedIcon material-icons"
+										title="Unlisted Station"
+										>link</i
+									>
+									<i
+										v-if="station.privacy === 'private'"
 										class="privateIcon material-icons"
-										title="This station is not visible to other users."
+										title="Private Station"
 										>lock</i
 									>
 									<i
@@ -507,6 +513,9 @@ html {
 				}
 				.material-icons:first-child {
 					margin-left: 5px;
+				}
+				.unlistedIcon {
+					color: $light-orange;
 				}
 				.privateIcon {
 					color: $dark-pink;
