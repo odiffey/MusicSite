@@ -1,148 +1,162 @@
 <template>
-	<div>
+	<div class="app">
 		<metadata title="Settings" />
 		<main-header />
-		<div class="container">
-			<!--Implement Validation-->
-			<label class="label">Username</label>
-			<div class="control is-grouped">
-				<p class="control is-expanded has-icon has-icon-right">
-					<input
-						v-model="user.username"
-						class="input"
-						type="text"
-						placeholder="Change username"
-					/>
-					<!--Remove validation if it's their own without changing-->
-				</p>
-				<p class="control">
-					<button class="button is-success" @click="changeUsername()">
-						Save changes
-					</button>
-				</p>
-			</div>
-			<label class="label">Email</label>
-			<div v-if="user.email" class="control is-grouped">
-				<p class="control is-expanded has-icon has-icon-right">
-					<input
-						v-model="user.email.address"
-						class="input"
-						type="text"
-						placeholder="Change email address"
-					/>
-					<!--Remove validation if it's their own without changing-->
-				</p>
-				<p class="control is-expanded">
-					<button class="button is-success" @click="changeEmail()">
-						Save changes
-					</button>
-				</p>
-			</div>
-			<label v-if="password" class="label">Change Password</label>
-			<div v-if="password" class="control is-grouped">
-				<p class="control is-expanded has-icon has-icon-right">
-					<input
-						v-model="newPassword"
-						class="input"
-						type="password"
-						placeholder="Change password"
-					/>
-				</p>
-				<p class="control is-expanded">
-					<button class="button is-success" @click="changePassword()">
-						Change password
-					</button>
-				</p>
-			</div>
-
-			<label v-if="!password" class="label">Add password</label>
-			<div v-if="!password" class="control is-grouped">
-				<button
-					v-if="passwordStep === 1"
-					class="button is-success"
-					@click="requestPassword()"
-				>
-					Request password email
-				</button>
-				<br />
-
-				<p
-					v-if="passwordStep === 2"
-					class="control is-expanded has-icon has-icon-right"
-				>
-					<input
-						v-model="passwordCode"
-						class="input"
-						type="text"
-						placeholder="Code"
-					/>
-				</p>
-				<p v-if="passwordStep === 2" class="control is-expanded">
-					<button class="button is-success" v-on:click="verifyCode()">
-						Verify code
-					</button>
-				</p>
-
-				<p
-					v-if="passwordStep === 3"
-					class="control is-expanded has-icon has-icon-right"
-				>
-					<input
-						v-model="setNewPassword"
-						class="input"
-						type="password"
-						placeholder="New password"
-					/>
-				</p>
-				<p v-if="passwordStep === 3" class="control is-expanded">
-					<button class="button is-success" @click="setPassword()">
-						Set password
-					</button>
-				</p>
-			</div>
-			<a
-				v-if="passwordStep === 1 && !password"
-				href="#"
-				@click="passwordStep = 2"
-				>Skip this step</a
-			>
-
-			<a
-				v-if="!github"
-				class="button is-github"
-				:href="`${serverDomain}/auth/github/link`"
-			>
-				<div class="icon">
-					<img class="invert" src="/assets/social/github.svg" />
+		<div class="content-wrapper">
+			<h2>Settings</h2>
+			<div class="settingsContainer">
+				<div class="settingsRow">
+					<div class="setting">
+						<label class="label">Username</label>
+						<div class="inputArea">
+							<input
+								v-model="user.username"
+								class="input"
+								type="text"
+								placeholder="Change username"
+							/>
+							<button
+								class="button is-success"
+								@click="changeUsername()"
+							>
+								<i class="material-icons">
+									save
+								</i>
+							</button>
+						</div>
+					</div>
+					<div class="setting">
+						<label class="label">Email</label>
+						<div v-if="user.email" class="inputArea">
+							<input
+								v-model="user.email.address"
+								class="input"
+								type="text"
+								placeholder="Change email address"
+							/>
+							<button
+								class="button is-success"
+								@click="changeEmail()"
+							>
+								<i class="material-icons">
+									save
+								</i>
+							</button>
+						</div>
+					</div>
 				</div>
-				&nbsp; Link GitHub to account
-			</a>
-
-			<button
-				v-if="password && github"
-				class="button is-danger"
-				@click="unlinkPassword()"
-			>
-				Remove logging in with password
-			</button>
-			<button
-				v-if="password && github"
-				class="button is-danger"
-				@click="unlinkGitHub()"
-			>
-				Remove logging in with GitHub
-			</button>
-
-			<br />
-			<button
-				class="button is-warning"
-				style="margin-top: 30px;"
-				@click="removeSessions()"
-			>
-				Log out everywhere
-			</button>
+				<div class="settingsRow">
+					<div v-if="password" class="setting">
+						<label class="label">Change Password</label>
+						<div class="inputArea">
+							<input
+								v-model="newPassword"
+								class="input"
+								type="password"
+								placeholder="Change password"
+							/>
+							<button
+								class="button is-success"
+								@click="changePassword()"
+							>
+								<i class="material-icons">
+									save
+								</i>
+							</button>
+						</div>
+					</div>
+					<div v-if="!password" class="setting">
+						<label class="label">Add password</label>
+						<div class="inputArea">
+							<button
+								v-if="passwordStep === 1 && !password"
+								href="#"
+								class="button codeButton is-info"
+								@click="passwordStep = 2"
+							>
+								Enter Code
+							</button>
+							<button
+								v-if="passwordStep === 1"
+								class="button is-success"
+								@click="requestPassword()"
+							>
+								Request password email
+							</button>
+							<br />
+							<input
+								v-if="passwordStep === 2"
+								v-model="passwordCode"
+								class="input"
+								type="text"
+								placeholder="Code"
+							/>
+							<button
+								v-if="passwordStep === 2"
+								class="button is-success"
+								v-on:click="verifyCode()"
+							>
+								<i class="material-icons">
+									save
+								</i>
+							</button>
+							<input
+								v-if="passwordStep === 3"
+								v-model="setNewPassword"
+								class="input"
+								type="password"
+								placeholder="New password"
+							/>
+							<button
+								v-if="passwordStep === 3"
+								class="button is-success"
+								@click="setPassword()"
+							>
+								<i class="material-icons">
+									save
+								</i>
+							</button>
+						</div>
+					</div>
+					<div class="setting buttonsOnly">
+						<a
+							v-if="!github"
+							class="button is-github"
+							:href="`${serverDomain}/auth/github/link`"
+						>
+							<div class="icon">
+								<img
+									class="invert"
+									src="/assets/social/github.svg"
+								/>
+							</div>
+							&nbsp; Link GitHub to account
+						</a>
+						<button
+							v-if="password && github"
+							class="button is-danger"
+							@click="unlinkPassword()"
+						>
+							Remove logging in with password
+						</button>
+						<button
+							v-if="password && github"
+							class="button is-danger"
+							@click="unlinkGitHub()"
+						>
+							Remove logging in with GitHub
+						</button>
+						<button
+							class="button is-warning"
+							@click="removeSessions()"
+						>
+							Log out everywhere
+						</button>
+					</div>
+				</div>
+			</div>
+			<main-footer />
 		</div>
-		<main-footer />
 	</div>
 </template>
 
@@ -328,6 +342,7 @@ export default {
 					content: "Password must have between 6 and 200 characters.",
 					timeout: 8000
 				});
+
 			if (!validation.regex.password.test(newPassword))
 				return new Toast({
 					content:
@@ -366,8 +381,99 @@ export default {
 <style lang="scss" scoped>
 @import "scss/variables/colors.scss";
 
-.container {
-	padding: 25px;
+.content-wrapper {
+	padding: 30px 0 calc(230px + 60px) 0;
+}
+h2 {
+	font-size: 36px;
+	font-weight: 600;
+	margin: 10px 0 15px 0;
+	text-align: center;
+}
+.settingsContainer {
+	margin: 0 auto;
+	border: 1px solid #a3e0ff;
+	background-color: #f4f4f4;
+	border-radius: 5px;
+	padding: 16px;
+	width: 60%;
+	.settingsRow {
+		display: inline-flex;
+		width: 100%;
+		.setting {
+			margin-top: 10px;
+			width: 100%;
+			.inputArea {
+				display: flex;
+				input {
+					flex: 2 1 0;
+					height: 40px;
+				}
+				button {
+					margin-left: 10px;
+					&.codeButton {
+						flex-grow: 1;
+						margin-left: 0;
+						margin-right: auto;
+					}
+				}
+			}
+			&:nth-child(even) {
+				margin-left: 15px;
+			}
+			.button,
+			button {
+				width: auto;
+				height: 40px;
+				&.is-github {
+					margin-left: 0;
+					margin-top: 20px;
+					width: 100%;
+				}
+			}
+			&.buttonsOnly {
+				margin-top: auto;
+				button {
+					margin-top: 10px;
+					width: 100%;
+				}
+			}
+		}
+	}
+}
+
+@media screen and (max-width: 1200px) {
+	.settingsContainer {
+		width: 80%;
+	}
+}
+@media screen and (max-width: 800px) {
+	.settingsContainer {
+		width: 90%;
+		.settingsRow {
+			display: block;
+			.setting:nth-child(even) {
+				margin-left: auto;
+			}
+		}
+	}
+}
+@media screen and (max-width: 560px) {
+	.settingsContainer .settingsRow .setting {
+		button,
+		.button {
+			margin-top: 10px;
+			margin-left: 0 !important;
+			width: 100% !important;
+			height: 40px;
+		}
+		.inputArea {
+			display: block;
+			input {
+				height: 40px;
+			}
+		}
+	}
 }
 
 a {
