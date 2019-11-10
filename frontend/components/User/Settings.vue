@@ -7,6 +7,25 @@
 			<div class="settingsContainer">
 				<div class="settingsRow">
 					<div class="setting">
+						<label class="label">Name</label>
+						<div class="inputArea">
+							<input
+								v-model="user.name"
+								class="input"
+								type="text"
+								placeholder="Change name"
+							/>
+							<button
+								class="button is-success"
+								@click="changeName()"
+							>
+								<i class="material-icons">
+									save
+								</i>
+							</button>
+						</div>
+					</div>
+					<div class="setting">
 						<label class="label">Username</label>
 						<div class="inputArea">
 							<input
@@ -25,6 +44,8 @@
 							</button>
 						</div>
 					</div>
+				</div>
+				<div class="settingsRow">
 					<div class="setting">
 						<label class="label">Email</label>
 						<div v-if="user.email" class="inputArea">
@@ -317,6 +338,29 @@ export default {
 					else
 						new Toast({
 							content: "Successfully changed username",
+							timeout: 4000
+						});
+				}
+			);
+		},
+		changeName() {
+			const { name } = this.user;
+			if (!validation.isLength(name, 1, 64))
+				return new Toast({
+					content: "Name must have between 1 and 64 characters.",
+					timeout: 8000
+				});
+
+			return this.socket.emit(
+				"users.updateName",
+				this.userId,
+				name,
+				res => {
+					if (res.status !== "success")
+						new Toast({ content: res.message, timeout: 8000 });
+					else
+						new Toast({
+							content: "Successfully changed name",
 							timeout: 4000
 						});
 				}
