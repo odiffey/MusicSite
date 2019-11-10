@@ -46,6 +46,46 @@
 					</div>
 				</div>
 				<div class="settingsRow">
+					<div class="setting">
+						<label class="label">Location</label>
+						<div class="inputArea">
+							<input
+								v-model="user.location"
+								class="input"
+								type="text"
+								placeholder="Change location"
+							/>
+							<button
+								class="button is-success"
+								@click="changeLocation()"
+							>
+								<i class="material-icons">
+									save
+								</i>
+							</button>
+						</div>
+					</div>
+					<div class="setting">
+						<label class="label">Bio</label>
+						<div class="inputArea">
+							<textarea
+								v-model="user.bio"
+								class="textarea"
+								type="text"
+								placeholder="Change bio"
+							/>
+							<button
+								class="button is-success"
+								@click="changeBio()"
+							>
+								<i class="material-icons">
+									save
+								</i>
+							</button>
+						</div>
+					</div>
+				</div>
+				<div class="settingsRow">
 					<div v-if="password" class="setting">
 						<label class="label">Change Password</label>
 						<div class="inputArea">
@@ -282,6 +322,52 @@ export default {
 				}
 			);
 		},
+		changeLocation() {
+			const { location } = this.user;
+			if (!validation.isLength(location, 0, 50))
+				return new Toast({
+					content: "Location must have between 0 and 50 characters.",
+					timeout: 8000
+				});
+
+			return this.socket.emit(
+				"users.updateLocation",
+				this.userId,
+				location,
+				res => {
+					if (res.status !== "success")
+						new Toast({ content: res.message, timeout: 8000 });
+					else
+						new Toast({
+							content: "Successfully changed location",
+							timeout: 4000
+						});
+				}
+			);
+		},
+		changeBio() {
+			const { bio } = this.user;
+			if (!validation.isLength(bio, 0, 200))
+				return new Toast({
+					content: "Bio must have between 0 and 200 characters.",
+					timeout: 8000
+				});
+
+			return this.socket.emit(
+				"users.updateBio",
+				this.userId,
+				bio,
+				res => {
+					if (res.status !== "success")
+						new Toast({ content: res.message, timeout: 8000 });
+					else
+						new Toast({
+							content: "Successfully changed bio",
+							timeout: 4000
+						});
+				}
+			);
+		},
 		changePassword() {
 			const { newPassword } = this;
 			if (!validation.isLength(newPassword, 6, 200))
@@ -408,6 +494,11 @@ h2 {
 				input {
 					flex: 2 1 0;
 					height: 40px;
+				}
+				textarea {
+					flex: 2 1 0;
+					min-height: 80px;
+					min-width: inherit;
 				}
 				button {
 					margin-left: 10px;
