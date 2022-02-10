@@ -30,7 +30,7 @@
     "eslint-plugin-prettier": "^3.1.0",
     "eslint-plugin-vue": "^5.2.3",
     "fetch": "^1.1.0",
-    "node-sass": "^4.12.0",
+    "node-sass": "^7.0.0",
     "prettier": "1.18.2",
     "sass-loader": "^7.1.0",
     "snyk": "^1.208.0",
